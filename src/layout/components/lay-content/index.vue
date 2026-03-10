@@ -188,7 +188,6 @@ const transitionMain = defineComponent({
     </router-view>
 
     <!-- 页脚 -->
-    <LayFooter v-if="!hideFooter && !fixedHeader" />
   </section>
 </template>
 

@@ -125,14 +125,26 @@ const userRouter = {
     {
       path: "/user/list",
       name: "UserList",
+      component: "user/user-list",
       meta: {
         title: "用户列表",
         showParent: true
       }
     },
     {
+      path: "/user/edit/:id",
+      name: "UserEdit",
+      component: "user/edit",
+      meta: {
+        title: "编辑用户",
+        showLink: false,
+        activePath: "/user/list"
+      }
+    },
+    {
       path: "/user/share-list",
       name: "UserShareList",
+      component: "user/share-list",
       meta: {
         title: "用户分享",
         showParent: true
@@ -141,6 +153,7 @@ const userRouter = {
     {
       path: "/user/diet-list",
       name: "UserDietList",
+      component: "user/diet-list",
       meta: {
         title: "饮食管理",
         showParent: true
@@ -149,6 +162,7 @@ const userRouter = {
     {
       path: "/user/nutrition-list",
       name: "UserNutritionList",
+      component: "user/nutrition-list",
       meta: {
         title: "营养管理",
         showParent: true

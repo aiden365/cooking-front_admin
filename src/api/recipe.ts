@@ -9,6 +9,12 @@ export interface RecipeListParams {
   verifyStatus?: RecipeVerifyStatus | "";
 }
 
+export interface RecipeAppraiseListParams {
+  pageNum: number;
+  pageSize: number;
+  keyword?: string;
+}
+
 export interface RecipeSeasoningItem {
   id: number;
   name: string;
@@ -52,6 +58,22 @@ export interface RecipeDetail extends RecipeItem {
   steps: RecipeStepItem[];
 }
 
+export interface RecipeAppraiseUserItem {
+  id: number;
+  username: string;
+  operationScore: number;
+  matchingScore: number;
+  satisfactionScore: number;
+}
+
+export interface RecipeAppraiseItem {
+  recipeId: number;
+  recipeName: string;
+  operationScore: number;
+  matchingScore: number;
+  satisfactionScore: number;
+}
+
 export interface CreateRecipePayload {
   name: string;
   durationMinutes: number;
@@ -70,6 +92,28 @@ export interface RecipeListResult {
     total: number;
     pageNum: number;
     pageSize: number;
+  };
+  message: string;
+}
+
+export interface RecipeAppraiseListResult {
+  success: boolean;
+  code: number;
+  data: {
+    list: RecipeAppraiseItem[];
+    total: number;
+    pageNum: number;
+    pageSize: number;
+  };
+  message: string;
+}
+
+export interface RecipeAppraiseDetailResult {
+  success: boolean;
+  code: number;
+  data: {
+    recipeName: string;
+    list: RecipeAppraiseUserItem[];
   };
   message: string;
 }
@@ -99,6 +143,24 @@ export interface RecipeCreateResult {
 
 export const getRecipeList = (params: RecipeListParams) => {
   return http.request<RecipeListResult>("get", "/recipe/list", { params });
+};
+
+export const getRecipeAppraiseList = (params: RecipeAppraiseListParams) => {
+  return http.request<RecipeAppraiseListResult>("get", "/recipe/appraise/list", {
+    params
+  });
+};
+
+export const getRecipeAppraiseDetail = (recipeId: number) => {
+  return http.request<RecipeAppraiseDetailResult>("get", "/recipe/appraise/detail", {
+    params: { recipeId }
+  });
+};
+
+export const resetRecipeAppraise = (recipeId: number) => {
+  return http.request<RecipeDeleteResult>("post", "/recipe/appraise/reset", {
+    data: { recipeId }
+  });
 };
 
 export const getRecipeDetail = (id: number) => {

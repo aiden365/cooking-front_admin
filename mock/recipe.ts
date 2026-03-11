@@ -22,6 +22,14 @@ interface RecipeStepItem {
   sampleImage: string;
 }
 
+interface RecipeAppraiseUserItem {
+  id: number;
+  username: string;
+  operationScore: number;
+  matchingScore: number;
+  satisfactionScore: number;
+}
+
 interface RecipeItem {
   id: number;
   name: string;
@@ -40,6 +48,7 @@ interface RecipeItem {
   seasonings: RecipeSeasoningItem[];
   ingredients: RecipeIngredientItem[];
   steps: RecipeStepItem[];
+  appraises: RecipeAppraiseUserItem[];
 }
 
 interface CreateRecipeBody {
@@ -77,6 +86,8 @@ const recipeNamePool = [
   "上汤娃娃菜",
   "照烧鸡腿饭"
 ];
+
+const userPool = ["小王", "小李", "阿青", "Tom", "Lucy", "Mia"];
 
 function buildSeasonings(seed: number): RecipeSeasoningItem[] {
   return [
@@ -117,12 +128,23 @@ function buildSteps(seed: number): RecipeStepItem[] {
   ];
 }
 
+function buildAppraises(seed: number): RecipeAppraiseUserItem[] {
+  return Array.from({ length: 4 }, (_, index) => ({
+    id: seed * 10 + index + 1,
+    username: userPool[(seed + index) % userPool.length],
+    operationScore: Number((1.2 + ((seed + index) % 30) / 10).toFixed(1)),
+    matchingScore: Number((1.4 + ((seed + index * 2) % 28) / 10).toFixed(1)),
+    satisfactionScore: Number((1.6 + ((seed + index * 3) % 26) / 10).toFixed(1))
+  }));
+}
+
 const recipeList: RecipeItem[] = Array.from({ length: 60 }, (_, index) => {
   const id = index + 1;
   const name = `${recipeNamePool[index % recipeNamePool.length]} ${id}`;
   const seasonings = buildSeasonings(id);
   const ingredients = buildIngredients(id);
   const steps = buildSteps(id);
+  const appraises = buildAppraises(id);
   return {
     id,
     name,
@@ -140,13 +162,20 @@ const recipeList: RecipeItem[] = Array.from({ length: 60 }, (_, index) => {
     tips: "建议出锅前撒少量葱花提香，口感会更好。",
     seasonings,
     ingredients,
-    steps
+    steps,
+    appraises
   };
 });
 
 function parseNumber(value: unknown, fallback: number) {
   const parsed = Number(value);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function averageScore(list: RecipeAppraiseUserItem[], key: keyof Omit<RecipeAppraiseUserItem, "id" | "username">) {
+  if (list.length === 0) return 0;
+  const total = list.reduce((sum, item) => sum + item[key], 0);
+  return Number((total / list.length).toFixed(1));
 }
 
 export default defineFakeRoute([
@@ -194,6 +223,70 @@ export default defineFakeRoute([
           pageSize
         },
         message: "请求成功"
+      };
+    }
+  },
+  {
+    url: "/recipe/appraise/list",
+    method: "get",
+    response: ({ query }) => {
+      const pageNum = parseNumber(query?.pageNum, 1);
+      const pageSize = parseNumber(query?.pageSize, 7);
+      const keyword = String(query?.keyword ?? "").trim();
+
+      const filteredList = recipeList.filter(item =>
+        keyword ? item.name.includes(keyword) : true
+      );
+
+      const startIndex = (pageNum - 1) * pageSize;
+      const paginatedList = filteredList.slice(startIndex, startIndex + pageSize).map(item => ({
+        recipeId: item.id,
+        recipeName: item.name,
+        operationScore: averageScore(item.appraises, "operationScore"),
+        matchingScore: averageScore(item.appraises, "matchingScore"),
+        satisfactionScore: averageScore(item.appraises, "satisfactionScore")
+      }));
+
+      return {
+        success: true,
+        code: 200,
+        data: {
+          list: paginatedList,
+          total: filteredList.length,
+          pageNum,
+          pageSize
+        },
+        message: "请求成功"
+      };
+    }
+  },
+  {
+    url: "/recipe/appraise/detail",
+    method: "get",
+    response: ({ query }) => {
+      const recipeId = Number(query?.recipeId);
+      const recipe = recipeList.find(item => item.id === recipeId);
+
+      return {
+        success: true,
+        code: 200,
+        data: {
+          recipeName: recipe?.name ?? "未知菜谱",
+          list: recipe?.appraises ?? []
+        },
+        message: "请求成功"
+      };
+    }
+  },
+  {
+    url: "/recipe/appraise/reset",
+    method: "post",
+    response: () => {
+      return {
+        success: true,
+        code: 200,
+        data: null,
+        message: "重置成功"
       };
     }
   },
@@ -249,7 +342,8 @@ export default defineFakeRoute([
           order: item.order,
           description: item.description,
           sampleImage: item.sampleImage
-        }))
+        })),
+        appraises: []
       };
 
       recipeList.unshift(newRecipe);

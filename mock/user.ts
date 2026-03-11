@@ -21,6 +21,14 @@ interface UserShareItem {
   imageUrl: string;
 }
 
+interface UserDietItem {
+  id: number;
+  username: string;
+  recipeName: string;
+  date: string;
+  mealTime: 1 | 2 | 3;
+}
+
 interface UserSaveBody {
   id?: number;
   username: string;
@@ -81,6 +89,14 @@ const userShares: UserShareItem[] = Array.from({ length: 24 }, (_, index) => {
     imageUrl: `https://picsum.photos/seed/user-share-${id}/320/220`
   };
 });
+
+const userDiets: UserDietItem[] = Array.from({ length: 28 }, (_, index) => ({
+  id: index + 1,
+  username: userNames[index % userNames.length],
+  recipeName: recipeNames[index % recipeNames.length],
+  date: `2026-03-${String((index % 28) + 1).padStart(2, "0")}`,
+  mealTime: ((index % 3) + 1) as 1 | 2 | 3
+}));
 
 function parseNumber(value: unknown, fallback: number) {
   const parsed = Number(value);
@@ -152,6 +168,40 @@ export default defineFakeRoute([
     }
   },
   {
+    url: "/system/user/diet-list",
+    method: "get",
+    response: ({ query }) => {
+      const pageNum = parseNumber(query?.pageNum, 1);
+      const pageSize = parseNumber(query?.pageSize, 7);
+      const username = String(query?.username ?? "").trim();
+      const recipeName = String(query?.recipeName ?? "").trim();
+      const date = String(query?.date ?? "").trim();
+      const mealTime = Number(query?.mealTime || 0);
+
+      const filteredList = userDiets.filter(item => {
+        const matchesUser = username ? item.username.includes(username) : true;
+        const matchesRecipe = recipeName ? item.recipeName.includes(recipeName) : true;
+        const matchesDate = date ? item.date === date : true;
+        const matchesMealTime = mealTime ? item.mealTime === mealTime : true;
+        return matchesUser && matchesRecipe && matchesDate && matchesMealTime;
+      });
+      const startIndex = (pageNum - 1) * pageSize;
+      const list = filteredList.slice(startIndex, startIndex + pageSize);
+
+      return {
+        success: true,
+        code: 200,
+        data: {
+          list,
+          total: filteredList.length,
+          pageNum,
+          pageSize
+        },
+        message: "请求成功"
+      };
+    }
+  },
+  {
     url: "/system/user/share-detail",
     method: "get",
     response: ({ query }) => {
@@ -167,6 +217,18 @@ export default defineFakeRoute([
   },
   {
     url: "/system/user/share-delete",
+    method: "post",
+    response: () => {
+      return {
+        success: true,
+        code: 200,
+        data: null,
+        message: "删除成功"
+      };
+    }
+  },
+  {
+    url: "/system/user/diet-delete",
     method: "post",
     response: () => {
       return {

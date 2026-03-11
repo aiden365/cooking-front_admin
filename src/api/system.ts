@@ -13,6 +13,15 @@ export interface UserShareListParams {
   recipeName?: string;
 }
 
+export interface UserDietListParams {
+  pageNum: number;
+  pageSize: number;
+  username?: string;
+  recipeName?: string;
+  date?: string;
+  mealTime?: 1 | 2 | 3 | "";
+}
+
 export interface UserListItem {
   id: number;
   username: string;
@@ -37,6 +46,14 @@ export interface UserShareItem {
 
 export interface UserShareDetail extends UserShareItem {
   imageUrl: string;
+}
+
+export interface UserDietItem {
+  id: number;
+  username: string;
+  recipeName: string;
+  date: string;
+  mealTime: 1 | 2 | 3;
 }
 
 export interface UserSavePayload {
@@ -67,6 +84,18 @@ export interface UserShareListResult {
   code: number;
   data: {
     list: UserShareItem[];
+    total: number;
+    pageNum: number;
+    pageSize: number;
+  };
+  message: string;
+}
+
+export interface UserDietListResult {
+  success: boolean;
+  code: number;
+  data: {
+    list: UserDietItem[];
     total: number;
     pageNum: number;
     pageSize: number;
@@ -115,6 +144,12 @@ export const getUserShareList = (params: UserShareListParams) => {
   });
 };
 
+export const getUserDietList = (params: UserDietListParams) => {
+  return http.request<UserDietListResult>("get", "/system/user/diet-list", {
+    params
+  });
+};
+
 export const getUserShareDetail = (shareId: number) => {
   return http.request<UserShareDetailResult>("get", "/system/user/share-detail", {
     params: { shareId }
@@ -124,6 +159,12 @@ export const getUserShareDetail = (shareId: number) => {
 export const deleteUserShare = (shareId: number) => {
   return http.request<UserActionResult>("post", "/system/user/share-delete", {
     data: { shareId }
+  });
+};
+
+export const deleteUserDiet = (dietId: number) => {
+  return http.request<UserActionResult>("post", "/system/user/diet-delete", {
+    data: { dietId }
   });
 };
 

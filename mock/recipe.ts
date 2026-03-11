@@ -2,6 +2,26 @@ import { defineFakeRoute } from "vite-plugin-fake-server/client";
 
 type RecipeVerifyStatus = "verified" | "unverified";
 
+interface RecipeSeasoningItem {
+  id: number;
+  name: string;
+  dosage: string;
+}
+
+interface RecipeIngredientItem {
+  id: number;
+  name: string;
+  dosage: string;
+  preparation: string;
+}
+
+interface RecipeStepItem {
+  id: number;
+  order: number;
+  description: string;
+  sampleImage: string;
+}
+
 interface RecipeItem {
   id: number;
   name: string;
@@ -16,6 +36,10 @@ interface RecipeItem {
   verifyStatus: RecipeVerifyStatus;
   tags: string[];
   createdAt: string;
+  tips: string;
+  seasonings: RecipeSeasoningItem[];
+  ingredients: RecipeIngredientItem[];
+  steps: RecipeStepItem[];
 }
 
 interface CreateRecipeBody {
@@ -54,23 +78,69 @@ const recipeNamePool = [
   "照烧鸡腿饭"
 ];
 
+function buildSeasonings(seed: number): RecipeSeasoningItem[] {
+  return [
+    { id: seed * 10 + 1, name: "生抽", dosage: "1 勺" },
+    { id: seed * 10 + 2, name: "食盐", dosage: "2 克" },
+    { id: seed * 10 + 3, name: "黑胡椒", dosage: "1 克" }
+  ];
+}
+
+function buildIngredients(seed: number): RecipeIngredientItem[] {
+  return [
+    { id: seed * 10 + 1, name: "鸡胸肉", dosage: "200 克", preparation: "切丁后加入少量盐抓匀腌制" },
+    { id: seed * 10 + 2, name: "彩椒", dosage: "80 克", preparation: "切块备用" },
+    { id: seed * 10 + 3, name: "洋葱", dosage: "60 克", preparation: "切丝备用" }
+  ];
+}
+
+function buildSteps(seed: number): RecipeStepItem[] {
+  return [
+    {
+      id: seed * 10 + 1,
+      order: 1,
+      description: "锅中热油，先将主食材翻炒至微微变色，保持中火避免口感过老。",
+      sampleImage: `https://picsum.photos/seed/recipe-step-${seed}-1/120/80`
+    },
+    {
+      id: seed * 10 + 2,
+      order: 2,
+      description: "加入配菜和调料继续翻炒，确保食材均匀裹上汤汁并充分入味。",
+      sampleImage: `https://picsum.photos/seed/recipe-step-${seed}-2/120/80`
+    },
+    {
+      id: seed * 10 + 3,
+      order: 3,
+      description: "出锅前根据口味再次调整调味，翻匀后装盘即可。",
+      sampleImage: `https://picsum.photos/seed/recipe-step-${seed}-3/120/80`
+    }
+  ];
+}
+
 const recipeList: RecipeItem[] = Array.from({ length: 60 }, (_, index) => {
   const id = index + 1;
   const name = `${recipeNamePool[index % recipeNamePool.length]} ${id}`;
+  const seasonings = buildSeasonings(id);
+  const ingredients = buildIngredients(id);
+  const steps = buildSteps(id);
   return {
     id,
     name,
     cover: `https://picsum.photos/seed/recipe-${id}/96/96`,
-    ingredientCount: 4 + (index % 6),
-    seasoningCount: 2 + (index % 5),
-    stepCount: 5 + (index % 7),
+    ingredientCount: ingredients.length,
+    seasoningCount: seasonings.length,
+    stepCount: steps.length,
     durationMinutes: 15 + index * 2,
     viewCount: 800 + index * 137,
     activityValue: 65 + (index % 12) * 3,
     popularityValue: 78 + (index % 10) * 4,
     verifyStatus: index % 3 === 0 ? "unverified" : "verified",
     tags: index % 2 === 0 ? ["家常菜", "高蛋白"] : ["快手菜", "低脂"],
-    createdAt: `2026-03-${String((index % 28) + 1).padStart(2, "0")}`
+    createdAt: `2026-03-${String((index % 28) + 1).padStart(2, "0")}`,
+    tips: "建议出锅前撒少量葱花提香，口感会更好。",
+    seasonings,
+    ingredients,
+    steps
   };
 });
 
@@ -98,7 +168,21 @@ export default defineFakeRoute([
       });
 
       const startIndex = (pageNum - 1) * pageSize;
-      const paginatedList = filteredList.slice(startIndex, startIndex + pageSize);
+      const paginatedList = filteredList.slice(startIndex, startIndex + pageSize).map(item => ({
+        id: item.id,
+        name: item.name,
+        cover: item.cover,
+        ingredientCount: item.ingredientCount,
+        seasoningCount: item.seasoningCount,
+        stepCount: item.stepCount,
+        durationMinutes: item.durationMinutes,
+        viewCount: item.viewCount,
+        activityValue: item.activityValue,
+        popularityValue: item.popularityValue,
+        verifyStatus: item.verifyStatus,
+        tags: item.tags,
+        createdAt: item.createdAt
+      }));
 
       return {
         success: true,
@@ -147,7 +231,25 @@ export default defineFakeRoute([
         popularityValue: 0,
         verifyStatus: "unverified",
         tags: recipeBody.tips ? ["待校验"] : [],
-        createdAt: new Date().toISOString().slice(0, 10)
+        createdAt: new Date().toISOString().slice(0, 10),
+        tips: recipeBody.tips,
+        seasonings: recipeBody.seasonings.map((item, index) => ({
+          id: nextId * 100 + index + 1,
+          name: item.name,
+          dosage: item.dosage
+        })),
+        ingredients: recipeBody.ingredients.map((item, index) => ({
+          id: nextId * 200 + index + 1,
+          name: item.name,
+          dosage: item.dosage,
+          preparation: item.preparation
+        })),
+        steps: recipeBody.steps.map((item, index) => ({
+          id: nextId * 300 + index + 1,
+          order: item.order,
+          description: item.description,
+          sampleImage: item.sampleImage
+        }))
       };
 
       recipeList.unshift(newRecipe);

@@ -45,6 +45,13 @@ export interface RecipeItem {
   createdAt: string;
 }
 
+export interface RecipeDetail extends RecipeItem {
+  tips: string;
+  seasonings: RecipeSeasoningItem[];
+  ingredients: RecipeIngredientItem[];
+  steps: RecipeStepItem[];
+}
+
 export interface CreateRecipePayload {
   name: string;
   durationMinutes: number;
@@ -70,7 +77,7 @@ export interface RecipeListResult {
 export interface RecipeDetailResult {
   success: boolean;
   code: number;
-  data: RecipeItem;
+  data: RecipeDetail;
   message: string;
 }
 

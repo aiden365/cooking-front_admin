@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { getRecipeDetail, type RecipeItem } from "@/api/recipe";
+import { getRecipeDetail, type RecipeDetail } from "@/api/recipe";
 
 defineOptions({
   name: "DishDetail"
@@ -11,7 +11,9 @@ const route = useRoute();
 const router = useRouter();
 
 const loading = ref(false);
-const recipe = ref<RecipeItem | null>(null);
+const recipe = ref<RecipeDetail | null>(null);
+const previewVisible = ref(false);
+const previewImage = ref("");
 
 const recipeId = computed(() => Number(route.params.id));
 
@@ -23,6 +25,11 @@ async function loadRecipeDetail() {
   } finally {
     loading.value = false;
   }
+}
+
+function handlePreview(image: string) {
+  previewImage.value = image;
+  previewVisible.value = true;
 }
 
 onMounted(() => {
@@ -77,5 +84,61 @@ onMounted(() => {
         </el-descriptions-item>
       </el-descriptions>
     </el-card>
+
+    <el-card v-if="recipe" shadow="never">
+      <template #header>
+        <div class="text-base font-semibold">调料信息</div>
+      </template>
+      <el-table :data="recipe.seasonings" border>
+        <el-table-column label="调料名" prop="name" min-width="220" />
+        <el-table-column label="用量" prop="dosage" min-width="180" />
+      </el-table>
+    </el-card>
+
+    <el-card v-if="recipe" shadow="never">
+      <template #header>
+        <div class="text-base font-semibold">食材信息</div>
+      </template>
+      <el-table :data="recipe.ingredients" border>
+        <el-table-column label="食材名" prop="name" min-width="180" />
+        <el-table-column label="用量" prop="dosage" min-width="160" />
+        <el-table-column
+          label="处理方式"
+          prop="preparation"
+          min-width="320"
+          show-overflow-tooltip
+        />
+      </el-table>
+    </el-card>
+
+    <el-card v-if="recipe" shadow="never">
+      <template #header>
+        <div class="text-base font-semibold">制作步骤</div>
+      </template>
+      <el-table :data="recipe.steps" border>
+        <el-table-column label="第几步" prop="order" width="100" align="center" />
+        <el-table-column
+          label="描述"
+          prop="description"
+          min-width="420"
+          show-overflow-tooltip
+        />
+        <el-table-column label="示例图" min-width="180" align="center">
+          <template #default="{ row }">
+            <el-image
+              :src="row.sampleImage"
+              fit="cover"
+              class="h-[72px] w-[108px] rounded-md cursor-pointer"
+              :preview-src-list="[]"
+              @click="handlePreview(row.sampleImage)"
+            />
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-card>
+
+    <el-dialog v-model="previewVisible" width="720px" title="示例图预览">
+      <img :src="previewImage" alt="示例图预览" class="w-full rounded-lg" />
+    </el-dialog>
   </div>
 </template>

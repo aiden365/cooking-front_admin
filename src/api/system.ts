@@ -22,6 +22,12 @@ export interface UserDietListParams {
   mealTime?: 1 | 2 | 3 | "";
 }
 
+export interface UserNutritionListParams {
+  pageNum: number;
+  pageSize: number;
+  username?: string;
+}
+
 export interface UserListItem {
   id: number;
   username: string;
@@ -54,6 +60,22 @@ export interface UserDietItem {
   recipeName: string;
   date: string;
   mealTime: 1 | 2 | 3;
+}
+
+export interface UserNutritionItem {
+  id: number;
+  username: string;
+  nutritionCount: number;
+  gender: "男" | "女";
+  age: number;
+  height: number;
+  weight: number;
+}
+
+export interface UserNutritionTargetItem {
+  id: number;
+  nutritionName: string;
+  targetValue: string;
 }
 
 export interface UserSavePayload {
@@ -103,6 +125,35 @@ export interface UserDietListResult {
   message: string;
 }
 
+export interface UserNutritionListResult {
+  success: boolean;
+  code: number;
+  data: {
+    list: UserNutritionItem[];
+    total: number;
+    pageNum: number;
+    pageSize: number;
+  };
+  message: string;
+}
+
+export interface UserNutritionTargetListResult {
+  success: boolean;
+  code: number;
+  data: {
+    username: string;
+    list: UserNutritionTargetItem[];
+  };
+  message: string;
+}
+
+export interface NutritionNameConfigResult {
+  success: boolean;
+  code: number;
+  data: string[];
+  message: string;
+}
+
 export interface UserDetailResult {
   success: boolean;
   code: number;
@@ -134,6 +185,12 @@ export interface UpdateUserStatusPayload {
   status: 1 | 3;
 }
 
+export interface SaveUserNutritionTargetPayload {
+  id: number;
+  nutritionName: string;
+  targetValue: string;
+}
+
 export const getUserList = (params: UserListParams) => {
   return http.request<UserListResult>("get", "/system/user/list", { params });
 };
@@ -147,6 +204,34 @@ export const getUserShareList = (params: UserShareListParams) => {
 export const getUserDietList = (params: UserDietListParams) => {
   return http.request<UserDietListResult>("get", "/system/user/diet-list", {
     params
+  });
+};
+
+export const getUserNutritionList = (params: UserNutritionListParams) => {
+  return http.request<UserNutritionListResult>("get", "/system/user/nutrition-list", {
+    params
+  });
+};
+
+export const getUserNutritionTargets = (userId: number) => {
+  return http.request<UserNutritionTargetListResult>("get", "/system/user/nutrition-targets", {
+    params: { userId }
+  });
+};
+
+export const getNutritionNameConfig = () => {
+  return http.request<NutritionNameConfigResult>("get", "/system/config/nutrition-names");
+};
+
+export const saveUserNutritionTarget = (data: SaveUserNutritionTargetPayload) => {
+  return http.request<UserActionResult>("post", "/system/user/nutrition-target/save", {
+    data
+  });
+};
+
+export const deleteUserNutritionTarget = (id: number) => {
+  return http.request<UserActionResult>("post", "/system/user/nutrition-target/delete", {
+    data: { id }
   });
 };
 

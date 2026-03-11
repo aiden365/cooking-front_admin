@@ -29,6 +29,23 @@ interface UserDietItem {
   mealTime: 1 | 2 | 3;
 }
 
+interface UserNutritionTargetItem {
+  id: number;
+  nutritionName: string;
+  targetValue: string;
+}
+
+interface UserNutritionItem {
+  id: number;
+  username: string;
+  nutritionCount: number;
+  gender: "男" | "女";
+  age: number;
+  height: number;
+  weight: number;
+  targets: UserNutritionTargetItem[];
+}
+
 interface UserSaveBody {
   id?: number;
   username: string;
@@ -40,6 +57,13 @@ interface UserSaveBody {
   status: 1 | 3;
 }
 
+interface NutritionSaveBody {
+  id: number;
+  nutritionName: string;
+  targetValue: string;
+}
+
+const nutritionNames = ["蛋白质", "脂肪", "碳水化合物"];
 const userNames = [
   "王小满",
   "李晓彤",
@@ -96,6 +120,21 @@ const userDiets: UserDietItem[] = Array.from({ length: 28 }, (_, index) => ({
   recipeName: recipeNames[index % recipeNames.length],
   date: `2026-03-${String((index % 28) + 1).padStart(2, "0")}`,
   mealTime: ((index % 3) + 1) as 1 | 2 | 3
+}));
+
+const userNutritionList: UserNutritionItem[] = Array.from({ length: 20 }, (_, index) => ({
+  id: index + 1,
+  username: userNames[index % userNames.length],
+  nutritionCount: nutritionNames.length,
+  gender: index % 2 === 0 ? "女" : "男",
+  age: 22 + (index % 12),
+  height: 160 + (index % 15),
+  weight: 48 + (index % 18),
+  targets: nutritionNames.map((name, targetIndex) => ({
+    id: (index + 1) * 10 + targetIndex + 1,
+    nutritionName: name,
+    targetValue: `${20 + index + targetIndex * 5}g`
+  }))
 }));
 
 function parseNumber(value: unknown, fallback: number) {
@@ -198,6 +237,112 @@ export default defineFakeRoute([
           pageSize
         },
         message: "请求成功"
+      };
+    }
+  },
+  {
+    url: "/system/user/nutrition-list",
+    method: "get",
+    response: ({ query }) => {
+      const pageNum = parseNumber(query?.pageNum, 1);
+      const pageSize = parseNumber(query?.pageSize, 7);
+      const username = String(query?.username ?? "").trim();
+
+      const filteredList = userNutritionList.filter(item =>
+        username ? item.username.includes(username) : true
+      );
+      const startIndex = (pageNum - 1) * pageSize;
+      const list = filteredList.slice(startIndex, startIndex + pageSize).map(item => ({
+        id: item.id,
+        username: item.username,
+        nutritionCount: item.nutritionCount,
+        gender: item.gender,
+        age: item.age,
+        height: item.height,
+        weight: item.weight
+      }));
+
+      return {
+        success: true,
+        code: 200,
+        data: {
+          list,
+          total: filteredList.length,
+          pageNum,
+          pageSize
+        },
+        message: "请求成功"
+      };
+    }
+  },
+  {
+    url: "/system/user/nutrition-targets",
+    method: "get",
+    response: ({ query }) => {
+      const userId = Number(query?.userId);
+      const user = userNutritionList.find(item => item.id === userId) ?? userNutritionList[0];
+      return {
+        success: true,
+        code: 200,
+        data: {
+          username: user.username,
+          list: user.targets
+        },
+        message: "请求成功"
+      };
+    }
+  },
+  {
+    url: "/system/config/nutrition-names",
+    method: "get",
+    response: () => {
+      return {
+        success: true,
+        code: 200,
+        data: nutritionNames,
+        message: "请求成功"
+      };
+    }
+  },
+  {
+    url: "/system/user/nutrition-target/save",
+    method: "post",
+    response: ({ body }) => {
+      const payload = body as NutritionSaveBody;
+      for (const user of userNutritionList) {
+        const target = user.targets.find(item => item.id === payload.id);
+        if (target) {
+          target.nutritionName = payload.nutritionName;
+          target.targetValue = payload.targetValue;
+          break;
+        }
+      }
+      return {
+        success: true,
+        code: 200,
+        data: null,
+        message: "保存成功"
+      };
+    }
+  },
+  {
+    url: "/system/user/nutrition-target/delete",
+    method: "post",
+    response: ({ body }) => {
+      const id = Number(body?.id);
+      for (const user of userNutritionList) {
+        const index = user.targets.findIndex(item => item.id === id);
+        if (index >= 0) {
+          user.targets.splice(index, 1);
+          user.nutritionCount = user.targets.length;
+          break;
+        }
+      }
+      return {
+        success: true,
+        code: 200,
+        data: null,
+        message: "删除成功"
       };
     }
   },

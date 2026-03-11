@@ -221,9 +221,30 @@ const repositoryRouter = {
     {
       path: "/repository/list",
       name: "RepositoryList",
+      component: "repository/list",
       meta: {
         title: "知识列表",
         showParent: true
+      }
+    },
+    {
+      path: "/repository/add",
+      name: "RepositoryAdd",
+      component: "repository/edit",
+      meta: {
+        title: "新增知识",
+        showLink: false,
+        activePath: "/repository/list"
+      }
+    },
+    {
+      path: "/repository/edit/:id",
+      name: "RepositoryEdit",
+      component: "repository/edit",
+      meta: {
+        title: "编辑知识",
+        showLink: false,
+        activePath: "/repository/list"
       }
     }
   ]

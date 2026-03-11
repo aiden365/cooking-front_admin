@@ -55,7 +55,6 @@ const permissionRouter = {
   ]
 };
 
-// 菜谱管理路由
 const dishRouter = {
   path: "/dish",
   meta: {
@@ -67,14 +66,46 @@ const dishRouter = {
     {
       path: "/dish/list",
       name: "DishList",
+      component: "dish/list",
       meta: {
         title: "菜谱列表",
         showParent: true
       }
     },
     {
+      path: "/dish/add",
+      name: "DishAdd",
+      component: "dish/add",
+      meta: {
+        title: "新增菜谱",
+        showLink: false,
+        activePath: "/dish/list"
+      }
+    },
+    {
+      path: "/dish/edit/:id",
+      name: "DishEdit",
+      component: "dish/edit",
+      meta: {
+        title: "编辑菜谱",
+        showLink: false,
+        activePath: "/dish/list"
+      }
+    },
+    {
+      path: "/dish/detail/:id",
+      name: "DishDetail",
+      component: "dish/detail",
+      meta: {
+        title: "菜谱详情",
+        showLink: false,
+        activePath: "/dish/list"
+      }
+    },
+    {
       path: "/dish/appraise-list",
       name: "DishAppraiseList",
+      component: "dish/appraise-list",
       meta: {
         title: "菜谱评价",
         showParent: true
@@ -83,7 +114,6 @@ const dishRouter = {
   ]
 };
 
-// 用户管理路由
 const userRouter = {
   path: "/user",
   meta: {
@@ -127,7 +157,6 @@ const userRouter = {
   ]
 };
 
-// 标签管理路由
 const lableRouter = {
   path: "/lable",
   meta: {
@@ -155,7 +184,6 @@ const lableRouter = {
   ]
 };
 
-// 知识库管理路由
 const repositoryRouter = {
   path: "/repository",
   meta: {
@@ -175,7 +203,6 @@ const repositoryRouter = {
   ]
 };
 
-// 系统管理路由
 const systemRouter = {
   path: "/system",
   meta: {
@@ -203,7 +230,6 @@ const systemRouter = {
   ]
 };
 
-// 最简代码，也就是这些字段必须有
 const fightingRouter = {
   path: "/fighting",
   meta: {
@@ -218,7 +244,6 @@ const fightingRouter = {
       name: "Fighting",
       meta: {
         title: "加油",
-        // 通过设置showParent为true，显示父级
         showParent: true
       }
     },
@@ -227,7 +252,6 @@ const fightingRouter = {
       name: "Effort",
       meta: {
         title: "努力",
-        // 通过设置showParent为true，显示父级
         showParent: true
       }
     },

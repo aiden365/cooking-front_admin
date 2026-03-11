@@ -9,6 +9,26 @@ export interface RecipeListParams {
   verifyStatus?: RecipeVerifyStatus | "";
 }
 
+export interface RecipeSeasoningItem {
+  id: number;
+  name: string;
+  dosage: string;
+}
+
+export interface RecipeIngredientItem {
+  id: number;
+  name: string;
+  dosage: string;
+  preparation: string;
+}
+
+export interface RecipeStepItem {
+  id: number;
+  order: number;
+  description: string;
+  sampleImage: string;
+}
+
 export interface RecipeItem {
   id: number;
   name: string;
@@ -23,6 +43,16 @@ export interface RecipeItem {
   verifyStatus: RecipeVerifyStatus;
   tags: string[];
   createdAt: string;
+}
+
+export interface CreateRecipePayload {
+  name: string;
+  durationMinutes: number;
+  tips: string;
+  cover: string;
+  seasonings: Array<Pick<RecipeSeasoningItem, "name" | "dosage">>;
+  ingredients: Array<Pick<RecipeIngredientItem, "name" | "dosage" | "preparation">>;
+  steps: Array<Pick<RecipeStepItem, "order" | "description" | "sampleImage">>;
 }
 
 export interface RecipeListResult {
@@ -51,6 +81,15 @@ export interface RecipeDeleteResult {
   message: string;
 }
 
+export interface RecipeCreateResult {
+  success: boolean;
+  code: number;
+  data: {
+    id: number;
+  };
+  message: string;
+}
+
 export const getRecipeList = (params: RecipeListParams) => {
   return http.request<RecipeListResult>("get", "/recipe/list", { params });
 };
@@ -58,6 +97,12 @@ export const getRecipeList = (params: RecipeListParams) => {
 export const getRecipeDetail = (id: number) => {
   return http.request<RecipeDetailResult>("get", "/recipe/detail", {
     params: { id }
+  });
+};
+
+export const createRecipe = (data: CreateRecipePayload) => {
+  return http.request<RecipeCreateResult>("post", "/recipe/create", {
+    data
   });
 };
 

@@ -18,6 +18,27 @@ interface RecipeItem {
   createdAt: string;
 }
 
+interface CreateRecipeBody {
+  name: string;
+  durationMinutes: number;
+  tips: string;
+  cover: string;
+  seasonings: Array<{
+    name: string;
+    dosage: string;
+  }>;
+  ingredients: Array<{
+    name: string;
+    dosage: string;
+    preparation: string;
+  }>;
+  steps: Array<{
+    order: number;
+    description: string;
+    sampleImage: string;
+  }>;
+}
+
 const recipeNamePool = [
   "宫保鸡丁",
   "番茄牛腩",
@@ -104,6 +125,40 @@ export default defineFakeRoute([
         code: 200,
         data: recipe ?? recipeList[0],
         message: "请求成功"
+      };
+    }
+  },
+  {
+    url: "/recipe/create",
+    method: "post",
+    response: ({ body }) => {
+      const recipeBody = body as CreateRecipeBody;
+      const nextId = recipeList.length > 0 ? Math.max(...recipeList.map(item => item.id)) + 1 : 1;
+      const newRecipe: RecipeItem = {
+        id: nextId,
+        name: recipeBody.name,
+        cover: recipeBody.cover || `https://picsum.photos/seed/recipe-${nextId}/96/96`,
+        ingredientCount: recipeBody.ingredients.length,
+        seasoningCount: recipeBody.seasonings.length,
+        stepCount: recipeBody.steps.length,
+        durationMinutes: recipeBody.durationMinutes,
+        viewCount: 0,
+        activityValue: 0,
+        popularityValue: 0,
+        verifyStatus: "unverified",
+        tags: recipeBody.tips ? ["待校验"] : [],
+        createdAt: new Date().toISOString().slice(0, 10)
+      };
+
+      recipeList.unshift(newRecipe);
+
+      return {
+        success: true,
+        code: 200,
+        data: {
+          id: nextId
+        },
+        message: "创建成功"
       };
     }
   },

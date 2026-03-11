@@ -30,6 +30,11 @@ export interface SaveDishLabelPayload {
   sort: number;
 }
 
+export interface SaveUserLabelPayload {
+  name: string;
+  sort: number;
+}
+
 export interface LabelActionResult {
   success: boolean;
   code: number;
@@ -43,14 +48,32 @@ export const getDishLabelList = (params: DishLabelListParams) => {
   });
 };
 
+export const getUserLabelList = (params: DishLabelListParams) => {
+  return http.request<DishLabelListResult>("get", "/label/user/list", {
+    params
+  });
+};
+
 export const saveDishLabel = (data: SaveDishLabelPayload) => {
   return http.request<LabelActionResult>("post", "/label/dish/save", {
     data
   });
 };
 
+export const saveUserLabel = (data: SaveUserLabelPayload) => {
+  return http.request<LabelActionResult>("post", "/label/user/save", {
+    data
+  });
+};
+
 export const deleteDishLabel = (id: number) => {
   return http.request<LabelActionResult>("post", "/label/dish/delete", {
+    data: { id }
+  });
+};
+
+export const deleteUserLabel = (id: number) => {
+  return http.request<LabelActionResult>("post", "/label/user/delete", {
     data: { id }
   });
 };

@@ -12,6 +12,15 @@ interface UserItem {
   registerTime: string;
 }
 
+interface UserShareItem {
+  id: number;
+  username: string;
+  recipeName: string;
+  description: string;
+  imageName: string;
+  imageUrl: string;
+}
+
 interface UserSaveBody {
   id?: number;
   username: string;
@@ -38,6 +47,15 @@ const userNames = [
   "Tom"
 ];
 
+const recipeNames = [
+  "宫保鸡丁",
+  "番茄牛腩",
+  "清蒸鲈鱼",
+  "蒜蓉西兰花",
+  "黑椒鸡胸肉",
+  "菌菇豆腐煲"
+];
+
 const userList: UserItem[] = Array.from({ length: 36 }, (_, index) => ({
   id: index + 1,
   username: userNames[index % userNames.length],
@@ -49,6 +67,20 @@ const userList: UserItem[] = Array.from({ length: 36 }, (_, index) => ({
   status: index % 5 === 0 ? 3 : 1,
   registerTime: `2026-02-${String((index % 28) + 1).padStart(2, "0")} 10:${String(index % 60).padStart(2, "0")}:00`
 }));
+
+const userShares: UserShareItem[] = Array.from({ length: 24 }, (_, index) => {
+  const id = index + 1;
+  const timestamp = 1741708800000 + index * 3600 * 1000;
+  return {
+    id,
+    username: userNames[index % userNames.length],
+    recipeName: recipeNames[index % recipeNames.length],
+    description:
+      "这道菜整体口味不错，步骤也比较清晰，适合日常家庭制作。我根据自己的口味做了少量调整。",
+    imageName: `${timestamp}.jpg`,
+    imageUrl: `https://picsum.photos/seed/user-share-${id}/320/220`
+  };
+});
 
 function parseNumber(value: unknown, fallback: number) {
   const parsed = Number(value);
@@ -80,6 +112,68 @@ export default defineFakeRoute([
           pageSize
         },
         message: "请求成功"
+      };
+    }
+  },
+  {
+    url: "/system/user/share-list",
+    method: "get",
+    response: ({ query }) => {
+      const pageNum = parseNumber(query?.pageNum, 1);
+      const pageSize = parseNumber(query?.pageSize, 7);
+      const username = String(query?.username ?? "").trim();
+      const recipeName = String(query?.recipeName ?? "").trim();
+
+      const filteredList = userShares.filter(item => {
+        const matchesUser = username ? item.username.includes(username) : true;
+        const matchesRecipe = recipeName ? item.recipeName.includes(recipeName) : true;
+        return matchesUser && matchesRecipe;
+      });
+      const startIndex = (pageNum - 1) * pageSize;
+      const list = filteredList.slice(startIndex, startIndex + pageSize).map(item => ({
+        id: item.id,
+        username: item.username,
+        recipeName: item.recipeName,
+        description: item.description,
+        imageName: item.imageName
+      }));
+
+      return {
+        success: true,
+        code: 200,
+        data: {
+          list,
+          total: filteredList.length,
+          pageNum,
+          pageSize
+        },
+        message: "请求成功"
+      };
+    }
+  },
+  {
+    url: "/system/user/share-detail",
+    method: "get",
+    response: ({ query }) => {
+      const shareId = Number(query?.shareId);
+      const share = userShares.find(item => item.id === shareId) ?? userShares[0];
+      return {
+        success: true,
+        code: 200,
+        data: share,
+        message: "请求成功"
+      };
+    }
+  },
+  {
+    url: "/system/user/share-delete",
+    method: "post",
+    response: () => {
+      return {
+        success: true,
+        code: 200,
+        data: null,
+        message: "删除成功"
       };
     }
   },

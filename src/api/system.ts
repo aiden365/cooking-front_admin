@@ -6,6 +6,13 @@ export interface UserListParams {
   keyword?: string;
 }
 
+export interface UserShareListParams {
+  pageNum: number;
+  pageSize: number;
+  username?: string;
+  recipeName?: string;
+}
+
 export interface UserListItem {
   id: number;
   username: string;
@@ -19,6 +26,18 @@ export interface UserListItem {
 }
 
 export interface UserDetail extends Omit<UserListItem, "registerTime"> {}
+
+export interface UserShareItem {
+  id: number;
+  username: string;
+  recipeName: string;
+  description: string;
+  imageName: string;
+}
+
+export interface UserShareDetail extends UserShareItem {
+  imageUrl: string;
+}
 
 export interface UserSavePayload {
   id?: number;
@@ -43,10 +62,29 @@ export interface UserListResult {
   message: string;
 }
 
+export interface UserShareListResult {
+  success: boolean;
+  code: number;
+  data: {
+    list: UserShareItem[];
+    total: number;
+    pageNum: number;
+    pageSize: number;
+  };
+  message: string;
+}
+
 export interface UserDetailResult {
   success: boolean;
   code: number;
   data: UserDetail;
+  message: string;
+}
+
+export interface UserShareDetailResult {
+  success: boolean;
+  code: number;
+  data: UserShareDetail;
   message: string;
 }
 
@@ -69,6 +107,24 @@ export interface UpdateUserStatusPayload {
 
 export const getUserList = (params: UserListParams) => {
   return http.request<UserListResult>("get", "/system/user/list", { params });
+};
+
+export const getUserShareList = (params: UserShareListParams) => {
+  return http.request<UserShareListResult>("get", "/system/user/share-list", {
+    params
+  });
+};
+
+export const getUserShareDetail = (shareId: number) => {
+  return http.request<UserShareDetailResult>("get", "/system/user/share-detail", {
+    params: { shareId }
+  });
+};
+
+export const deleteUserShare = (shareId: number) => {
+  return http.request<UserActionResult>("post", "/system/user/share-delete", {
+    data: { shareId }
+  });
 };
 
 export const getUserDetail = (userId: number) => {

@@ -192,6 +192,7 @@ const lableRouter = {
     {
       path: "/lable/dish-list",
       name: "DishLableList",
+      component: "lable/dish-lable-list",
       meta: {
         title: "菜谱标签",
         showParent: true
@@ -200,6 +201,7 @@ const lableRouter = {
     {
       path: "/lable/user-list",
       name: "UserLableList",
+      component: "lable/user-lable-list",
       meta: {
         title: "用户标签",
         showParent: true

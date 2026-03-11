@@ -132,6 +132,16 @@ const userRouter = {
       }
     },
     {
+      path: "/user/add",
+      name: "UserAdd",
+      component: "user/edit",
+      meta: {
+        title: "新增用户",
+        showLink: false,
+        activePath: "/user/list"
+      }
+    },
+    {
       path: "/user/edit/:id",
       name: "UserEdit",
       component: "user/edit",

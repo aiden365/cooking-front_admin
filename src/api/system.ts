@@ -18,6 +18,19 @@ export interface UserListItem {
   registerTime: string;
 }
 
+export interface UserDetail extends Omit<UserListItem, "registerTime"> {}
+
+export interface UserSavePayload {
+  id?: number;
+  username: string;
+  account: string;
+  age: number;
+  gender: "男" | "女";
+  height: number;
+  weight: number;
+  status: 1 | 3;
+}
+
 export interface UserListResult {
   success: boolean;
   code: number;
@@ -27,6 +40,13 @@ export interface UserListResult {
     pageNum: number;
     pageSize: number;
   };
+  message: string;
+}
+
+export interface UserDetailResult {
+  success: boolean;
+  code: number;
+  data: UserDetail;
   message: string;
 }
 
@@ -49,6 +69,18 @@ export interface UpdateUserStatusPayload {
 
 export const getUserList = (params: UserListParams) => {
   return http.request<UserListResult>("get", "/system/user/list", { params });
+};
+
+export const getUserDetail = (userId: number) => {
+  return http.request<UserDetailResult>("get", "/system/user/detail", {
+    params: { userId }
+  });
+};
+
+export const saveUser = (data: UserSavePayload) => {
+  return http.request<UserActionResult>("post", "/system/user/save", {
+    data
+  });
 };
 
 export const resetUserPassword = (data: ResetPasswordPayload) => {

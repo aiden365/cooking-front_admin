@@ -85,6 +85,10 @@ function handleSearch() {
   loadUserList();
 }
 
+function handleAdd() {
+  router.push("/user/add");
+}
+
 function handleEdit(row: UserListItem) {
   router.push(`/user/edit/${row.id}`);
 }
@@ -149,6 +153,9 @@ loadUserList();
         </el-form-item>
         <el-form-item class="mb-0!">
           <el-button type="primary" @click="handleSearch">搜索</el-button>
+        </el-form-item>
+        <el-form-item class="mb-0! ml-auto">
+          <el-button type="primary" @click="handleAdd">新增用户</el-button>
         </el-form-item>
       </el-form>
     </el-card>

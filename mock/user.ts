@@ -12,6 +12,17 @@ interface UserItem {
   registerTime: string;
 }
 
+interface UserSaveBody {
+  id?: number;
+  username: string;
+  account: string;
+  age: number;
+  gender: "男" | "女";
+  height: number;
+  weight: number;
+  status: 1 | 3;
+}
+
 const userNames = [
   "王小满",
   "李晓彤",
@@ -69,6 +80,59 @@ export default defineFakeRoute([
           pageSize
         },
         message: "请求成功"
+      };
+    }
+  },
+  {
+    url: "/system/user/detail",
+    method: "get",
+    response: ({ query }) => {
+      const userId = Number(query?.userId);
+      const user = userList.find(item => item.id === userId) ?? userList[0];
+      const { registerTime: _registerTime, ...detail } = user;
+      return {
+        success: true,
+        code: 200,
+        data: detail,
+        message: "请求成功"
+      };
+    }
+  },
+  {
+    url: "/system/user/save",
+    method: "post",
+    response: ({ body }) => {
+      const payload = body as UserSaveBody;
+      if (payload.id) {
+        const target = userList.find(item => item.id === payload.id);
+        if (target) {
+          target.username = payload.username;
+          target.account = payload.account;
+          target.age = payload.age;
+          target.gender = payload.gender;
+          target.height = payload.height;
+          target.weight = payload.weight;
+          target.status = payload.status;
+        }
+      } else {
+        const nextId = userList.length > 0 ? Math.max(...userList.map(item => item.id)) + 1 : 1;
+        userList.unshift({
+          id: nextId,
+          username: payload.username,
+          account: payload.account,
+          age: payload.age,
+          gender: payload.gender,
+          height: payload.height,
+          weight: payload.weight,
+          status: payload.status,
+          registerTime: new Date().toISOString().slice(0, 19).replace("T", " ")
+        });
+      }
+      return {
+        success: true,
+        code: 200,
+        data: null,
+        message: "保存成功"
       };
     }
   },

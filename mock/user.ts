@@ -88,6 +88,24 @@ interface SaveSystemConfigBody {
   nutritionNames?: string[];
 }
 
+interface AdminItem {
+  id: number;
+  username: string;
+  account: string;
+  age: number;
+  gender: "男" | "女";
+  status: 1 | 2 | 3;
+  registerTime: string;
+}
+
+interface AdminSaveBody {
+  id?: number;
+  username: string;
+  account: string;
+  age: number;
+  gender: "男" | "女";
+}
+
 const nutritionNames = ["蛋白质", "脂肪", "碳水化合物"];
 const userNames = [
   "王小满",
@@ -200,6 +218,26 @@ const systemConfigStore = {
   nutritionNames: [...nutritionNames],
   maxNutritionTargets: 3
 };
+
+const adminNames = [
+  "系统管理员",
+  "运营主管",
+  "内容审核员",
+  "平台维护员",
+  "营养配置员",
+  "超级管理员",
+  "测试管理员"
+];
+
+const adminList: AdminItem[] = Array.from({ length: 18 }, (_, index) => ({
+  id: index + 1,
+  username: adminNames[index % adminNames.length],
+  account: `admin_${String(index + 1).padStart(3, "0")}`,
+  age: 24 + (index % 10),
+  gender: index % 2 === 0 ? "男" : "女",
+  status: ([1, 2, 3] as const)[index % 3],
+  registerTime: `2026-01-${String((index % 28) + 1).padStart(2, "0")} 09:${String((index * 7) % 60).padStart(2, "0")}:00`
+}));
 
 function parseNumber(value: unknown, fallback: number) {
   const parsed = Number(value);
@@ -449,6 +487,108 @@ export default defineFakeRoute([
         code: 200,
         data: null,
         message: "保存成功"
+      };
+    }
+  },
+  {
+    url: "/system/admin/list",
+    method: "get",
+    response: ({ query }) => {
+      const pageNum = parseNumber(query?.pageNum, 1);
+      const pageSize = parseNumber(query?.pageSize, 7);
+      const username = String(query?.username ?? "").trim();
+      const status = Number(query?.status || 0);
+
+      const filteredList = adminList.filter(item => {
+        const matchesUsername = username ? item.username.includes(username) : true;
+        const matchesStatus = status ? item.status === status : true;
+        return matchesUsername && matchesStatus;
+      });
+      const startIndex = (pageNum - 1) * pageSize;
+      const list = filteredList.slice(startIndex, startIndex + pageSize);
+
+      return {
+        success: true,
+        code: 200,
+        data: {
+          list,
+          total: filteredList.length,
+          pageNum,
+          pageSize
+        },
+        message: "请求成功"
+      };
+    }
+  },
+  {
+    url: "/system/admin/detail",
+    method: "get",
+    response: ({ query }) => {
+      const adminId = Number(query?.adminId);
+      const admin = adminList.find(item => item.id === adminId) ?? adminList[0];
+      const { registerTime: _registerTime, status: _status, ...detail } = admin;
+      return {
+        success: true,
+        code: 200,
+        data: detail,
+        message: "请求成功"
+      };
+    }
+  },
+  {
+    url: "/system/admin/save",
+    method: "post",
+    response: ({ body }) => {
+      const payload = body as AdminSaveBody;
+      if (payload.id) {
+        const target = adminList.find(item => item.id === payload.id);
+        if (target) {
+          target.username = payload.username;
+          target.account = payload.account;
+          target.age = payload.age;
+          target.gender = payload.gender;
+        }
+      } else {
+        const nextId = adminList.length > 0 ? Math.max(...adminList.map(item => item.id)) + 1 : 1;
+        adminList.unshift({
+          id: nextId,
+          username: payload.username,
+          account: payload.account,
+          age: payload.age,
+          gender: payload.gender,
+          status: 2,
+          registerTime: new Date().toISOString().slice(0, 19).replace("T", " ")
+        });
+      }
+      return {
+        success: true,
+        code: 200,
+        data: null,
+        message: "保存成功"
+      };
+    }
+  },
+  {
+    url: "/system/admin/reset-password",
+    method: "post",
+    response: () => {
+      return {
+        success: true,
+        code: 200,
+        data: null,
+        message: "密码修改成功"
+      };
+    }
+  },
+  {
+    url: "/system/admin/update-status",
+    method: "post",
+    response: () => {
+      return {
+        success: true,
+        code: 200,
+        data: null,
+        message: "状态更新成功"
       };
     }
   },

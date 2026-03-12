@@ -191,6 +191,62 @@ export interface SaveUserNutritionTargetPayload {
   targetValue: string;
 }
 
+export interface AdminListParams {
+  pageNum: number;
+  pageSize: number;
+  username?: string;
+  status?: 1 | 2 | 3 | "";
+}
+
+export interface AdminListItem {
+  id: number;
+  username: string;
+  account: string;
+  age: number;
+  gender: "男" | "女";
+  status: 1 | 2 | 3;
+  registerTime: string;
+}
+
+export interface AdminDetail extends Omit<AdminListItem, "registerTime" | "status"> {}
+
+export interface AdminSavePayload {
+  id?: number;
+  username: string;
+  account: string;
+  age: number;
+  gender: "男" | "女";
+}
+
+export interface AdminListResult {
+  success: boolean;
+  code: number;
+  data: {
+    list: AdminListItem[];
+    total: number;
+    pageNum: number;
+    pageSize: number;
+  };
+  message: string;
+}
+
+export interface AdminDetailResult {
+  success: boolean;
+  code: number;
+  data: AdminDetail;
+  message: string;
+}
+
+export interface ResetAdminPasswordPayload {
+  adminId: number;
+  password: string;
+}
+
+export interface UpdateAdminStatusPayload {
+  adminId: number;
+  status: 1 | 2 | 3;
+}
+
 export type SystemConfigKey =
   | "aiModel"
   | "maxUserLabels"
@@ -337,6 +393,34 @@ export const getSystemConfigDetail = (key: SystemConfigKey) => {
 
 export const saveSystemConfig = (data: SaveSystemConfigPayload) => {
   return http.request<UserActionResult>("post", "/system/config/save", {
+    data
+  });
+};
+
+export const getAdminList = (params: AdminListParams) => {
+  return http.request<AdminListResult>("get", "/system/admin/list", { params });
+};
+
+export const getAdminDetail = (adminId: number) => {
+  return http.request<AdminDetailResult>("get", "/system/admin/detail", {
+    params: { adminId }
+  });
+};
+
+export const saveAdmin = (data: AdminSavePayload) => {
+  return http.request<UserActionResult>("post", "/system/admin/save", {
+    data
+  });
+};
+
+export const resetAdminPassword = (data: ResetAdminPasswordPayload) => {
+  return http.request<UserActionResult>("post", "/system/admin/reset-password", {
+    data
+  });
+};
+
+export const updateAdminStatus = (data: UpdateAdminStatusPayload) => {
+  return http.request<UserActionResult>("post", "/system/admin/update-status", {
     data
   });
 };

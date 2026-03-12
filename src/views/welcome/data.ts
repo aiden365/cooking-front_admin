@@ -14,7 +14,7 @@ const chartData = [
     color: "#41b6ff",
     duration: 2200,
     name: "用户数量",
-    value: 36000,
+    value: 18,
     percent: "+88%",
     data: [30, 52, 42, 49, 67, 52, 74] // 平滑折线图数据
   },
@@ -24,7 +24,7 @@ const chartData = [
     color: "#e85f33",
     duration: 1600,
     name: "菜谱数量",
-    value: 16580,
+    value: 37,
     percent: "+70%",
     data: [16, 11, 55, 38, 21, 73, 79]
   },
@@ -34,7 +34,7 @@ const chartData = [
     color: "#26ce83",
     duration: 1500,
     name: "分享数量",
-    value: 16499,
+    value: 12,
     percent: "+99%",
     data: [8, 10, 31, 17, 36, 24, 45]
   },

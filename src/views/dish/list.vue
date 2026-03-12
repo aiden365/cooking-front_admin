@@ -41,8 +41,8 @@ const statusOptions: Array<{
   value: RecipeVerifyStatus | "";
 }> = [
   { label: "全部状态", value: "" },
-  { label: "已校验", value: "verified" },
-  { label: "未校验", value: "unverified" }
+  { label: "已校验", value: 1 },
+  { label: "未校验", value: 2 }
 ];
 
 async function loadRecipeList() {
@@ -112,11 +112,11 @@ async function handleDelete(row: RecipeItem) {
 }
 
 function formatStatus(status: RecipeVerifyStatus) {
-  return status === "verified" ? "已校验" : "未校验";
+  return status === 2 ? "已校验" : "未校验";
 }
 
 function formatStatusTagType(status: RecipeVerifyStatus) {
-  return status === "verified" ? "success" : "warning";
+  return status === 2 ? "success" : "warning";
 }
 
 function handleCurrentChange(page: number) {
@@ -138,7 +138,7 @@ onMounted(() => {
             v-model="searchForm.keyword"
             clearable
             placeholder="请输入菜谱名称"
-            class="w-[240px]"
+            class="240px"
             @keyup.enter="handleSearch"
           />
         </el-form-item>
@@ -147,6 +147,7 @@ onMounted(() => {
             v-model="searchForm.verifyStatus"
             placeholder="请选择校验状态"
             class="w-[180px]"
+            style="width: 150px"
           >
             <el-option
               v-for="option in statusOptions"
@@ -198,22 +199,22 @@ onMounted(() => {
         <el-table-column
           label="食材数量"
           prop="ingredientCount"
-          min-width="110"
+          min-width="80"
           align="center"
         />
         <el-table-column
           label="调料数量"
           prop="seasoningCount"
-          min-width="110"
+          min-width="80"
           align="center"
         />
         <el-table-column
           label="步骤数量"
           prop="stepCount"
-          min-width="110"
+          min-width="80"
           align="center"
         />
-        <el-table-column label="预计用时" min-width="120" align="center">
+        <el-table-column label="预计用时" min-width="100" align="center">
           <template #default="{ row }">
             {{ row.durationMinutes }} 分钟
           </template>
@@ -221,19 +222,25 @@ onMounted(() => {
         <el-table-column
           label="菜品浏览量"
           prop="viewCount"
-          min-width="120"
+          min-width="100"
           align="center"
         />
         <el-table-column
           label="菜谱活跃值"
           prop="activityValue"
-          min-width="120"
+          min-width="100"
           align="center"
         />
         <el-table-column
           label="菜谱人气值"
           prop="popularityValue"
-          min-width="120"
+          min-width="100"
+          align="center"
+        />
+        <el-table-column
+          label="综合评分"
+          prop="comprehensiveScore"
+          min-width="100"
           align="center"
         />
         <el-table-column label="检查状态" min-width="120" align="center">
@@ -258,7 +265,7 @@ onMounted(() => {
         <el-table-column
           label="操作"
           fixed="right"
-          min-width="300"
+          min-width="250"
           align="center"
         >
           <template #default="{ row }">

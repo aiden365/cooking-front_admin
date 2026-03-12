@@ -1,6 +1,6 @@
 import { http } from "@/utils/http";
 
-export type RecipeVerifyStatus = "verified" | "unverified";
+export type RecipeVerifyStatus = 1 | 2;
 
 export interface RecipeListParams {
   pageNum: number;
@@ -46,6 +46,7 @@ export interface RecipeItem {
   viewCount: number;
   activityValue: number;
   popularityValue: number;
+  comprehensiveScore: number;
   verifyStatus: RecipeVerifyStatus;
   tags: string[];
   createdAt: string;
@@ -80,7 +81,9 @@ export interface CreateRecipePayload {
   tips: string;
   cover: string;
   seasonings: Array<Pick<RecipeSeasoningItem, "name" | "dosage">>;
-  ingredients: Array<Pick<RecipeIngredientItem, "name" | "dosage" | "preparation">>;
+  ingredients: Array<
+    Pick<RecipeIngredientItem, "name" | "dosage" | "preparation">
+  >;
   steps: Array<Pick<RecipeStepItem, "order" | "description" | "sampleImage">>;
 }
 
@@ -146,15 +149,23 @@ export const getRecipeList = (params: RecipeListParams) => {
 };
 
 export const getRecipeAppraiseList = (params: RecipeAppraiseListParams) => {
-  return http.request<RecipeAppraiseListResult>("get", "/recipe/appraise/list", {
-    params
-  });
+  return http.request<RecipeAppraiseListResult>(
+    "get",
+    "/recipe/appraise/list",
+    {
+      params
+    }
+  );
 };
 
 export const getRecipeAppraiseDetail = (recipeId: number) => {
-  return http.request<RecipeAppraiseDetailResult>("get", "/recipe/appraise/detail", {
-    params: { recipeId }
-  });
+  return http.request<RecipeAppraiseDetailResult>(
+    "get",
+    "/recipe/appraise/detail",
+    {
+      params: { recipeId }
+    }
+  );
 };
 
 export const resetRecipeAppraise = (recipeId: number) => {

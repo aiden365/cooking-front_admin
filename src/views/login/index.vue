@@ -19,6 +19,7 @@ import dayIcon from "@/assets/svg/day.svg?component";
 import darkIcon from "@/assets/svg/dark.svg?component";
 import Lock from "~icons/ri/lock-fill";
 import User from "~icons/ri/user-3-fill";
+import EpUserFilled from "~icons/ep/user-filled";
 
 defineOptions({
   name: "Login"

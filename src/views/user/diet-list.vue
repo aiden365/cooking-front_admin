@@ -116,7 +116,12 @@ onMounted(() => {
           />
         </el-form-item>
         <el-form-item label="餐次" class="mb-0!">
-          <el-select v-model="searchForm.mealTime" placeholder="请选择餐次" class="w-[180px]">
+          <el-select
+            v-model="searchForm.mealTime"
+            placeholder="请选择餐次"
+            class="w-[180px]"
+            style="width: 150px"
+          >
             <el-option label="全部餐次" value="" />
             <el-option
               v-for="option in mealTimeOptions"
@@ -151,9 +156,16 @@ onMounted(() => {
             {{ formatMealTime(row.mealTime) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" fixed="right" min-width="120" align="center">
+        <el-table-column
+          label="操作"
+          fixed="right"
+          min-width="120"
+          align="center"
+        >
           <template #default="{ row }">
-            <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
+            <el-button link type="danger" @click="handleDelete(row)"
+              >删除</el-button
+            >
           </template>
         </el-table-column>
         <template #empty>

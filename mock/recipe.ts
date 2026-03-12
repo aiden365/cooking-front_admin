@@ -1,6 +1,6 @@
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 
-type RecipeVerifyStatus = "verified" | "unverified";
+type RecipeVerifyStatus = 1 | 2;
 
 interface RecipeSeasoningItem {
   id: number;
@@ -41,6 +41,7 @@ interface RecipeItem {
   viewCount: number;
   activityValue: number;
   popularityValue: number;
+  comprehensiveScore: number;
   verifyStatus: RecipeVerifyStatus;
   tags: string[];
   createdAt: string;
@@ -99,9 +100,24 @@ function buildSeasonings(seed: number): RecipeSeasoningItem[] {
 
 function buildIngredients(seed: number): RecipeIngredientItem[] {
   return [
-    { id: seed * 10 + 1, name: "鸡胸肉", dosage: "200 克", preparation: "切丁后加入少量盐抓匀腌制" },
-    { id: seed * 10 + 2, name: "彩椒", dosage: "80 克", preparation: "切块备用" },
-    { id: seed * 10 + 3, name: "洋葱", dosage: "60 克", preparation: "切丝备用" }
+    {
+      id: seed * 10 + 1,
+      name: "鸡胸肉",
+      dosage: "200 克",
+      preparation: "切丁后加入少量盐抓匀腌制"
+    },
+    {
+      id: seed * 10 + 2,
+      name: "彩椒",
+      dosage: "80 克",
+      preparation: "切块备用"
+    },
+    {
+      id: seed * 10 + 3,
+      name: "洋葱",
+      dosage: "60 克",
+      preparation: "切丝备用"
+    }
   ];
 }
 
@@ -140,7 +156,7 @@ function buildAppraises(seed: number): RecipeAppraiseUserItem[] {
 
 const recipeList: RecipeItem[] = Array.from({ length: 60 }, (_, index) => {
   const id = index + 1;
-  const name = `${recipeNamePool[index % recipeNamePool.length]} ${id}`;
+  const name = `${recipeNamePool[index % recipeNamePool.length]}`;
   const seasonings = buildSeasonings(id);
   const ingredients = buildIngredients(id);
   const steps = buildSteps(id);
@@ -156,7 +172,8 @@ const recipeList: RecipeItem[] = Array.from({ length: 60 }, (_, index) => {
     viewCount: 800 + index * 137,
     activityValue: 65 + (index % 12) * 3,
     popularityValue: 78 + (index % 10) * 4,
-    verifyStatus: index % 3 === 0 ? "unverified" : "verified",
+    verifyStatus: index % 3 === 0 ? 1 : 2,
+    comprehensiveScore: index % 5,
     tags: index % 2 === 0 ? ["家常菜", "高蛋白"] : ["快手菜", "低脂"],
     createdAt: `2026-03-${String((index % 28) + 1).padStart(2, "0")}`,
     tips: "建议出锅前撒少量葱花提香，口感会更好。",
@@ -172,7 +189,10 @@ function parseNumber(value: unknown, fallback: number) {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 }
 
-function averageScore(list: RecipeAppraiseUserItem[], key: keyof Omit<RecipeAppraiseUserItem, "id" | "username">) {
+function averageScore(
+  list: RecipeAppraiseUserItem[],
+  key: keyof Omit<RecipeAppraiseUserItem, "id" | "username">
+) {
   if (list.length === 0) return 0;
   const total = list.reduce((sum, item) => sum + item[key], 0);
   return Number((total / list.length).toFixed(1));
@@ -190,28 +210,29 @@ export default defineFakeRoute([
 
       const filteredList = recipeList.filter(item => {
         const matchesKeyword = keyword ? item.name.includes(keyword) : true;
-        const matchesStatus = verifyStatus
-          ? item.verifyStatus === verifyStatus
-          : true;
+        const matchesStatus = verifyStatus ? item.verifyStatus === 2 : true;
         return matchesKeyword && matchesStatus;
       });
 
       const startIndex = (pageNum - 1) * pageSize;
-      const paginatedList = filteredList.slice(startIndex, startIndex + pageSize).map(item => ({
-        id: item.id,
-        name: item.name,
-        cover: item.cover,
-        ingredientCount: item.ingredientCount,
-        seasoningCount: item.seasoningCount,
-        stepCount: item.stepCount,
-        durationMinutes: item.durationMinutes,
-        viewCount: item.viewCount,
-        activityValue: item.activityValue,
-        popularityValue: item.popularityValue,
-        verifyStatus: item.verifyStatus,
-        tags: item.tags,
-        createdAt: item.createdAt
-      }));
+      const paginatedList = filteredList
+        .slice(startIndex, startIndex + pageSize)
+        .map(item => ({
+          id: item.id,
+          name: item.name,
+          cover: item.cover,
+          ingredientCount: item.ingredientCount,
+          seasoningCount: item.seasoningCount,
+          stepCount: item.stepCount,
+          durationMinutes: item.durationMinutes,
+          viewCount: item.viewCount,
+          activityValue: item.activityValue,
+          popularityValue: item.popularityValue,
+          comprehensiveScore: item.comprehensiveScore,
+          verifyStatus: item.verifyStatus,
+          tags: item.tags,
+          createdAt: item.createdAt
+        }));
 
       return {
         success: true,
@@ -239,13 +260,15 @@ export default defineFakeRoute([
       );
 
       const startIndex = (pageNum - 1) * pageSize;
-      const paginatedList = filteredList.slice(startIndex, startIndex + pageSize).map(item => ({
-        recipeId: item.id,
-        recipeName: item.name,
-        operationScore: averageScore(item.appraises, "operationScore"),
-        matchingScore: averageScore(item.appraises, "matchingScore"),
-        satisfactionScore: averageScore(item.appraises, "satisfactionScore")
-      }));
+      const paginatedList = filteredList
+        .slice(startIndex, startIndex + pageSize)
+        .map(item => ({
+          recipeId: item.id,
+          recipeName: item.name,
+          operationScore: averageScore(item.appraises, "operationScore"),
+          matchingScore: averageScore(item.appraises, "matchingScore"),
+          satisfactionScore: averageScore(item.appraises, "satisfactionScore")
+        }));
 
       return {
         success: true,
@@ -310,11 +333,16 @@ export default defineFakeRoute([
     method: "post",
     response: ({ body }) => {
       const recipeBody = body as CreateRecipeBody;
-      const nextId = recipeList.length > 0 ? Math.max(...recipeList.map(item => item.id)) + 1 : 1;
+      const nextId =
+        recipeList.length > 0
+          ? Math.max(...recipeList.map(item => item.id)) + 1
+          : 1;
       const newRecipe: RecipeItem = {
         id: nextId,
         name: recipeBody.name,
-        cover: recipeBody.cover || `https://picsum.photos/seed/recipe-${nextId}/96/96`,
+        cover:
+          recipeBody.cover ||
+          `https://picsum.photos/seed/recipe-${nextId}/96/96`,
         ingredientCount: recipeBody.ingredients.length,
         seasoningCount: recipeBody.seasonings.length,
         stepCount: recipeBody.steps.length,

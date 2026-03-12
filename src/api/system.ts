@@ -191,6 +191,54 @@ export interface SaveUserNutritionTargetPayload {
   targetValue: string;
 }
 
+export type SystemConfigKey =
+  | "aiModel"
+  | "maxUserLabels"
+  | "maxDishLabels"
+  | "nutritionNames"
+  | "maxNutritionTargets";
+
+export interface SystemConfigCardItem {
+  key: SystemConfigKey;
+  name: string;
+  description: string;
+}
+
+export interface AiModelConfig {
+  ApiUrl: string;
+  ApiKey: string;
+}
+
+export interface SystemConfigDetail {
+  key: SystemConfigKey;
+  name: string;
+  description: string;
+  aiModelConfig?: AiModelConfig;
+  maxCount?: number;
+  nutritionNames?: string[];
+}
+
+export interface SaveSystemConfigPayload {
+  key: SystemConfigKey;
+  aiModelConfig?: AiModelConfig;
+  maxCount?: number;
+  nutritionNames?: string[];
+}
+
+export interface SystemConfigListResult {
+  success: boolean;
+  code: number;
+  data: SystemConfigCardItem[];
+  message: string;
+}
+
+export interface SystemConfigDetailResult {
+  success: boolean;
+  code: number;
+  data: SystemConfigDetail;
+  message: string;
+}
+
 export const getUserList = (params: UserListParams) => {
   return http.request<UserListResult>("get", "/system/user/list", { params });
 };
@@ -273,6 +321,22 @@ export const resetUserPassword = (data: ResetPasswordPayload) => {
 
 export const updateUserStatus = (data: UpdateUserStatusPayload) => {
   return http.request<UserActionResult>("post", "/system/user/update-status", {
+    data
+  });
+};
+
+export const getSystemConfigList = () => {
+  return http.request<SystemConfigListResult>("get", "/system/config/list");
+};
+
+export const getSystemConfigDetail = (key: SystemConfigKey) => {
+  return http.request<SystemConfigDetailResult>("get", "/system/config/detail", {
+    params: { key }
+  });
+};
+
+export const saveSystemConfig = (data: SaveSystemConfigPayload) => {
+  return http.request<UserActionResult>("post", "/system/config/save", {
     data
   });
 };

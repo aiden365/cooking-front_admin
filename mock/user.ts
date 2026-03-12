@@ -63,6 +63,31 @@ interface NutritionSaveBody {
   targetValue: string;
 }
 
+type SystemConfigKey =
+  | "aiModel"
+  | "maxUserLabels"
+  | "maxDishLabels"
+  | "nutritionNames"
+  | "maxNutritionTargets";
+
+interface AiModelConfig {
+  ApiUrl: string;
+  ApiKey: string;
+}
+
+interface SystemConfigCardItem {
+  key: SystemConfigKey;
+  name: string;
+  description: string;
+}
+
+interface SaveSystemConfigBody {
+  key: SystemConfigKey;
+  aiModelConfig?: AiModelConfig;
+  maxCount?: number;
+  nutritionNames?: string[];
+}
+
 const nutritionNames = ["蛋白质", "脂肪", "碳水化合物"];
 const userNames = [
   "王小满",
@@ -136,6 +161,45 @@ const userNutritionList: UserNutritionItem[] = Array.from({ length: 20 }, (_, in
     targetValue: `${20 + index + targetIndex * 5}g`
   }))
 }));
+
+const systemConfigCards: SystemConfigCardItem[] = [
+  {
+    key: "aiModel",
+    name: "AI大模型配置",
+    description: "维护 AI 大模型调用地址和访问密钥。"
+  },
+  {
+    key: "maxUserLabels",
+    name: "用户标签最大数量",
+    description: "限制单个用户可绑定的标签数量上限。"
+  },
+  {
+    key: "maxDishLabels",
+    name: "菜品标签最大数量",
+    description: "限制单个菜品可绑定的标签数量上限。"
+  },
+  {
+    key: "nutritionNames",
+    name: "营养参数配置",
+    description: "维护营养参数名称列表，支持动态新增和删除。"
+  },
+  {
+    key: "maxNutritionTargets",
+    name: "营养目标最大数量",
+    description: "限制单个用户可配置的营养目标数量上限。"
+  }
+];
+
+const systemConfigStore = {
+  aiModelConfig: {
+    ApiUrl: "http://localhost:11434",
+    ApiKey: "8eb8e487cf3c44e5ac44ce81ee67f6a3"
+  },
+  maxUserLabels: 6,
+  maxDishLabels: 8,
+  nutritionNames: [...nutritionNames],
+  maxNutritionTargets: 3
+};
 
 function parseNumber(value: unknown, fallback: number) {
   const parsed = Number(value);
@@ -299,8 +363,92 @@ export default defineFakeRoute([
       return {
         success: true,
         code: 200,
-        data: nutritionNames,
+        data: systemConfigStore.nutritionNames,
         message: "请求成功"
+      };
+    }
+  },
+  {
+    url: "/system/config/list",
+    method: "get",
+    response: () => {
+      return {
+        success: true,
+        code: 200,
+        data: systemConfigCards,
+        message: "请求成功"
+      };
+    }
+  },
+  {
+    url: "/system/config/detail",
+    method: "get",
+    response: ({ query }) => {
+      const key = String(query?.key ?? "") as SystemConfigKey;
+      const card = systemConfigCards.find(item => item.key === key) ?? systemConfigCards[0];
+
+      if (key === "aiModel") {
+        return {
+          success: true,
+          code: 200,
+          data: {
+            ...card,
+            aiModelConfig: systemConfigStore.aiModelConfig
+          },
+          message: "请求成功"
+        };
+      }
+
+      if (key === "nutritionNames") {
+        return {
+          success: true,
+          code: 200,
+          data: {
+            ...card,
+            nutritionNames: systemConfigStore.nutritionNames
+          },
+          message: "请求成功"
+        };
+      }
+
+      return {
+        success: true,
+        code: 200,
+        data: {
+          ...card,
+          maxCount: systemConfigStore[key]
+        },
+        message: "请求成功"
+      };
+    }
+  },
+  {
+    url: "/system/config/save",
+    method: "post",
+    response: ({ body }) => {
+      const payload = body as SaveSystemConfigBody;
+      if (payload.key === "aiModel" && payload.aiModelConfig) {
+        systemConfigStore.aiModelConfig = { ...payload.aiModelConfig };
+      }
+
+      if (
+        (payload.key === "maxUserLabels" ||
+          payload.key === "maxDishLabels" ||
+          payload.key === "maxNutritionTargets") &&
+        typeof payload.maxCount === "number"
+      ) {
+        systemConfigStore[payload.key] = payload.maxCount;
+      }
+
+      if (payload.key === "nutritionNames" && payload.nutritionNames) {
+        systemConfigStore.nutritionNames = payload.nutritionNames.filter(Boolean);
+      }
+
+      return {
+        success: true,
+        code: 200,
+        data: null,
+        message: "保存成功"
       };
     }
   },

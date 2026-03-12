@@ -261,6 +261,7 @@ const systemRouter = {
     {
       path: "/system/admin-list",
       name: "AdminList",
+      component: "system/admin-list",
       meta: {
         title: "管理员列表",
         showParent: true
@@ -269,6 +270,7 @@ const systemRouter = {
     {
       path: "/system/config-list",
       name: "ConfigList",
+      component: "system/config-list",
       meta: {
         title: "参数配置",
         showParent: true

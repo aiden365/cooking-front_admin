@@ -263,6 +263,7 @@ onMounted(() => {
             <el-button
               type="success"
               class="!h-[30px] !rounded-[4px] !px-4"
+              style="margin-top: 9px; margin-right: -19px"
               @click="handleEdit(item)"
             >
               编辑
@@ -284,7 +285,10 @@ onMounted(() => {
       </el-card>
     </div>
 
-    <el-empty v-if="!loading && filteredCards.length === 0" description="暂无匹配的参数配置" />
+    <el-empty
+      v-if="!loading && filteredCards.length === 0"
+      description="暂无匹配的参数配置"
+    />
 
     <el-dialog
       v-model="dialogVisible"

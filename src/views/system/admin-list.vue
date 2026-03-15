@@ -220,20 +220,20 @@ loadAdminList();
   <div class="space-y-4">
     <el-card shadow="never">
       <el-form inline :model="searchForm" class="flex flex-wrap gap-y-2">
-        <el-form-item label="用户姓名" class="mb-0!">
+        <el-form-item label="管理员姓名" class="mb-0!">
           <el-input
             v-model="searchForm.username"
             clearable
-            placeholder="请输入用户姓名"
+            placeholder="请输入管理员姓名"
             class="w-[240px]"
             @keyup.enter="handleSearch"
           />
         </el-form-item>
-        <el-form-item label="用户状态" class="mb-0!">
+        <el-form-item label="管理员状态" class="mb-0!">
           <el-select
             v-model="searchForm.status"
             clearable
-            placeholder="请选择用户状态"
+            placeholder="请选择管理员状态"
             style="width: 180px"
           >
             <el-option :value="1" label="正常" />

@@ -116,7 +116,7 @@ onMounted(() => {
           min-width="320"
           show-overflow-tooltip
         />
-        <el-table-column label="文件" min-width="220">
+        <!-- <el-table-column label="文件" min-width="220">
           <template #default="{ row }">
             <a
               :href="row.fileUrl"
@@ -126,7 +126,7 @@ onMounted(() => {
               {{ row.fileName }}
             </a>
           </template>
-        </el-table-column>
+        </el-table-column> -->
         <el-table-column label="创建人" prop="creatorName" min-width="140" />
 
         <el-table-column label="创建时间" prop="createdAt" min-width="180" />

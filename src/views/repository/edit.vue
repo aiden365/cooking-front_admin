@@ -1,8 +1,20 @@
 <script setup lang="ts">
 import "@wangeditor/editor/dist/css/style.css";
-import { IDomEditor } from "@wangeditor/editor";
-import { Editor, Toolbar } from "@wangeditor/editor-for-vue";
-import { computed, onBeforeUnmount, onMounted, reactive, ref, shallowRef } from "vue";
+import {
+  createEditor,
+  createToolbar,
+  type IDomEditor,
+  type IEditorConfig,
+  type IToolbarConfig
+} from "@wangeditor/editor";
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  reactive,
+  ref
+} from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage, type FormInstance, type FormRules } from "element-plus";
 import {
@@ -29,7 +41,9 @@ const router = useRouter();
 const formRef = ref<FormInstance>();
 const loading = ref(false);
 const saving = ref(false);
-const editorRef = shallowRef<IDomEditor>();
+const toolbarRef = ref<HTMLDivElement | null>(null);
+const editorRef = ref<HTMLDivElement | null>(null);
+const editor = ref<IDomEditor | null>(null);
 
 const repositoryId = computed(() => {
   const rawId = route.params.id;
@@ -48,11 +62,6 @@ const form = reactive<RepositoryForm>({
   description: "",
   content: ""
 });
-
-const toolbarConfig = {};
-const editorConfig = {
-  placeholder: "请输入知识内容"
-};
 
 const rules: FormRules<RepositoryForm> = {
   name: [{ required: true, message: "请输入名称", trigger: "blur" }],
@@ -78,10 +87,35 @@ function fillForm(detail: RepositoryDetail) {
   form.type = detail.type;
   form.description = detail.description;
   form.content = detail.content;
+  if (editor.value) {
+    editor.value.setHtml(detail.content || "<p><br></p>");
+  }
 }
 
-function handleCreated(editor: IDomEditor) {
-  editorRef.value = editor;
+function initRichEditor() {
+  if (!toolbarRef.value || !editorRef.value || editor.value) return;
+
+  const editorConfig: Partial<IEditorConfig> = {
+    placeholder: "请输入知识内容",
+    onChange(currentEditor) {
+      form.content = currentEditor.getHtml();
+    }
+  };
+  const toolbarConfig: Partial<IToolbarConfig> = {};
+
+  editor.value = createEditor({
+    selector: editorRef.value,
+    mode: "default",
+    html: form.content || "<p><br></p>",
+    config: editorConfig
+  });
+
+  createToolbar({
+    editor: editor.value,
+    selector: toolbarRef.value,
+    mode: "default",
+    config: toolbarConfig
+  });
 }
 
 async function loadRepositoryDetail() {
@@ -120,12 +154,15 @@ async function handleSave() {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
+  await nextTick();
+  initRichEditor();
   loadRepositoryDetail();
 });
 
 onBeforeUnmount(() => {
-  editorRef.value?.destroy();
+  editor.value?.destroy();
+  editor.value = null;
 });
 </script>
 
@@ -165,20 +202,14 @@ onBeforeUnmount(() => {
         </el-form-item>
 
         <el-form-item label="知识内容" prop="content">
-          <div class="w-full overflow-hidden rounded-[8px] border border-solid border-[#dcdfe6]">
-            <Toolbar
-              :editor="editorRef"
-              :default-config="toolbarConfig"
-              mode="default"
+          <div
+            class="w-full overflow-hidden rounded-[8px] border border-solid border-[#dcdfe6]"
+          >
+            <div
+              ref="toolbarRef"
               class="border-0 border-b border-solid border-[#ebeef5]"
             />
-            <Editor
-              v-model="form.content"
-              :default-config="editorConfig"
-              mode="default"
-              class="min-h-[360px]"
-              @on-created="handleCreated"
-            />
+            <div ref="editorRef" class="min-h-[360px]" />
           </div>
         </el-form-item>
 

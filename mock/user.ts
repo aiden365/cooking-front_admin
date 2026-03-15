@@ -68,7 +68,8 @@ type SystemConfigKey =
   | "maxUserLabels"
   | "maxDishLabels"
   | "nutritionNames"
-  | "maxNutritionTargets";
+  | "maxNutritionTargets"
+  | "emailConfig";
 
 interface AiModelConfig {
   ApiUrl: string;
@@ -166,26 +167,34 @@ const userDiets: UserDietItem[] = Array.from({ length: 28 }, (_, index) => ({
   mealTime: ((index % 3) + 1) as 1 | 2 | 3
 }));
 
-const userNutritionList: UserNutritionItem[] = Array.from({ length: 20 }, (_, index) => ({
-  id: index + 1,
-  username: userNames[index % userNames.length],
-  nutritionCount: nutritionNames.length,
-  gender: index % 2 === 0 ? "女" : "男",
-  age: 22 + (index % 12),
-  height: 160 + (index % 15),
-  weight: 48 + (index % 18),
-  targets: nutritionNames.map((name, targetIndex) => ({
-    id: (index + 1) * 10 + targetIndex + 1,
-    nutritionName: name,
-    targetValue: `${20 + index + targetIndex * 5}g`
-  }))
-}));
+const userNutritionList: UserNutritionItem[] = Array.from(
+  { length: 20 },
+  (_, index) => ({
+    id: index + 1,
+    username: userNames[index % userNames.length],
+    nutritionCount: nutritionNames.length,
+    gender: index % 2 === 0 ? "女" : "男",
+    age: 22 + (index % 12),
+    height: 160 + (index % 15),
+    weight: 48 + (index % 18),
+    targets: nutritionNames.map((name, targetIndex) => ({
+      id: (index + 1) * 10 + targetIndex + 1,
+      nutritionName: name,
+      targetValue: `${20 + index + targetIndex * 5}g`
+    }))
+  })
+);
 
 const systemConfigCards: SystemConfigCardItem[] = [
-  {
+  /* {
     key: "aiModel",
     name: "AI大模型配置",
     description: "维护 AI 大模型调用地址和访问密钥。"
+  }, */
+  {
+    key: "emailConfig",
+    name: "邮件服务配置",
+    description: "维护 SMTP邮件服务 调用的相关配置参数。"
   },
   {
     key: "maxUserLabels",
@@ -284,17 +293,21 @@ export default defineFakeRoute([
 
       const filteredList = userShares.filter(item => {
         const matchesUser = username ? item.username.includes(username) : true;
-        const matchesRecipe = recipeName ? item.recipeName.includes(recipeName) : true;
+        const matchesRecipe = recipeName
+          ? item.recipeName.includes(recipeName)
+          : true;
         return matchesUser && matchesRecipe;
       });
       const startIndex = (pageNum - 1) * pageSize;
-      const list = filteredList.slice(startIndex, startIndex + pageSize).map(item => ({
-        id: item.id,
-        username: item.username,
-        recipeName: item.recipeName,
-        description: item.description,
-        imageName: item.imageName
-      }));
+      const list = filteredList
+        .slice(startIndex, startIndex + pageSize)
+        .map(item => ({
+          id: item.id,
+          username: item.username,
+          recipeName: item.recipeName,
+          description: item.description,
+          imageName: item.imageName
+        }));
 
       return {
         success: true,
@@ -322,7 +335,9 @@ export default defineFakeRoute([
 
       const filteredList = userDiets.filter(item => {
         const matchesUser = username ? item.username.includes(username) : true;
-        const matchesRecipe = recipeName ? item.recipeName.includes(recipeName) : true;
+        const matchesRecipe = recipeName
+          ? item.recipeName.includes(recipeName)
+          : true;
         const matchesDate = date ? item.date === date : true;
         const matchesMealTime = mealTime ? item.mealTime === mealTime : true;
         return matchesUser && matchesRecipe && matchesDate && matchesMealTime;
@@ -355,15 +370,17 @@ export default defineFakeRoute([
         username ? item.username.includes(username) : true
       );
       const startIndex = (pageNum - 1) * pageSize;
-      const list = filteredList.slice(startIndex, startIndex + pageSize).map(item => ({
-        id: item.id,
-        username: item.username,
-        nutritionCount: item.nutritionCount,
-        gender: item.gender,
-        age: item.age,
-        height: item.height,
-        weight: item.weight
-      }));
+      const list = filteredList
+        .slice(startIndex, startIndex + pageSize)
+        .map(item => ({
+          id: item.id,
+          username: item.username,
+          nutritionCount: item.nutritionCount,
+          gender: item.gender,
+          age: item.age,
+          height: item.height,
+          weight: item.weight
+        }));
 
       return {
         success: true,
@@ -383,7 +400,9 @@ export default defineFakeRoute([
     method: "get",
     response: ({ query }) => {
       const userId = Number(query?.userId);
-      const user = userNutritionList.find(item => item.id === userId) ?? userNutritionList[0];
+      const user =
+        userNutritionList.find(item => item.id === userId) ??
+        userNutritionList[0];
       return {
         success: true,
         code: 200,
@@ -424,7 +443,9 @@ export default defineFakeRoute([
     method: "get",
     response: ({ query }) => {
       const key = String(query?.key ?? "") as SystemConfigKey;
-      const card = systemConfigCards.find(item => item.key === key) ?? systemConfigCards[0];
+      const card =
+        systemConfigCards.find(item => item.key === key) ??
+        systemConfigCards[0];
 
       if (key === "aiModel") {
         return {
@@ -480,7 +501,8 @@ export default defineFakeRoute([
       }
 
       if (payload.key === "nutritionNames" && payload.nutritionNames) {
-        systemConfigStore.nutritionNames = payload.nutritionNames.filter(Boolean);
+        systemConfigStore.nutritionNames =
+          payload.nutritionNames.filter(Boolean);
       }
 
       return {
@@ -501,7 +523,9 @@ export default defineFakeRoute([
       const status = Number(query?.status || 0);
 
       const filteredList = adminList.filter(item => {
-        const matchesUsername = username ? item.username.includes(username) : true;
+        const matchesUsername = username
+          ? item.username.includes(username)
+          : true;
         const matchesStatus = status ? item.status === status : true;
         return matchesUsername && matchesStatus;
       });
@@ -551,7 +575,10 @@ export default defineFakeRoute([
           target.status = payload.status;
         }
       } else {
-        const nextId = adminList.length > 0 ? Math.max(...adminList.map(item => item.id)) + 1 : 1;
+        const nextId =
+          adminList.length > 0
+            ? Math.max(...adminList.map(item => item.id)) + 1
+            : 1;
         adminList.unshift({
           id: nextId,
           username: payload.username,
@@ -641,7 +668,8 @@ export default defineFakeRoute([
     method: "get",
     response: ({ query }) => {
       const shareId = Number(query?.shareId);
-      const share = userShares.find(item => item.id === shareId) ?? userShares[0];
+      const share =
+        userShares.find(item => item.id === shareId) ?? userShares[0];
       return {
         success: true,
         code: 200,
@@ -706,7 +734,10 @@ export default defineFakeRoute([
           target.status = payload.status;
         }
       } else {
-        const nextId = userList.length > 0 ? Math.max(...userList.map(item => item.id)) + 1 : 1;
+        const nextId =
+          userList.length > 0
+            ? Math.max(...userList.map(item => item.id)) + 1
+            : 1;
         userList.unshift({
           id: nextId,
           username: payload.username,

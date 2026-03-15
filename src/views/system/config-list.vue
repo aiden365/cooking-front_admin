@@ -6,7 +6,8 @@ import {
   Key,
   Opportunity,
   Search,
-  SetUp
+  SetUp,
+  Message
 } from "@element-plus/icons-vue";
 import {
   getSystemConfigDetail,
@@ -75,7 +76,8 @@ const iconMap: Record<SystemConfigKey, ConfigIcon> = {
   maxUserLabels: Opportunity,
   maxDishLabels: SetUp,
   nutritionNames: Connection,
-  maxNutritionTargets: Opportunity
+  maxNutritionTargets: Opportunity,
+  emailConfig: Message
 };
 
 const aiRules: FormRules = {

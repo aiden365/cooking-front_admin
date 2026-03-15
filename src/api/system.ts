@@ -253,7 +253,8 @@ export type SystemConfigKey =
   | "maxUserLabels"
   | "maxDishLabels"
   | "nutritionNames"
-  | "maxNutritionTargets";
+  | "maxNutritionTargets"
+  | "emailConfig";
 
 export interface SystemConfigCardItem {
   key: SystemConfigKey;
@@ -313,37 +314,62 @@ export const getUserDietList = (params: UserDietListParams) => {
 };
 
 export const getUserNutritionList = (params: UserNutritionListParams) => {
-  return http.request<UserNutritionListResult>("get", "/system/user/nutrition-list", {
-    params
-  });
+  return http.request<UserNutritionListResult>(
+    "get",
+    "/system/user/nutrition-list",
+    {
+      params
+    }
+  );
 };
 
 export const getUserNutritionTargets = (userId: number) => {
-  return http.request<UserNutritionTargetListResult>("get", "/system/user/nutrition-targets", {
-    params: { userId }
-  });
+  return http.request<UserNutritionTargetListResult>(
+    "get",
+    "/system/user/nutrition-targets",
+    {
+      params: { userId }
+    }
+  );
 };
 
 export const getNutritionNameConfig = () => {
-  return http.request<NutritionNameConfigResult>("get", "/system/config/nutrition-names");
+  return http.request<NutritionNameConfigResult>(
+    "get",
+    "/system/config/nutrition-names"
+  );
 };
 
-export const saveUserNutritionTarget = (data: SaveUserNutritionTargetPayload) => {
-  return http.request<UserActionResult>("post", "/system/user/nutrition-target/save", {
-    data
-  });
+export const saveUserNutritionTarget = (
+  data: SaveUserNutritionTargetPayload
+) => {
+  return http.request<UserActionResult>(
+    "post",
+    "/system/user/nutrition-target/save",
+    {
+      data
+    }
+  );
 };
 
 export const deleteUserNutritionTarget = (id: number) => {
-  return http.request<UserActionResult>("post", "/system/user/nutrition-target/delete", {
-    data: { id }
-  });
+  return http.request<UserActionResult>(
+    "post",
+    "/system/user/nutrition-target/delete",
+    {
+      data: { id }
+    }
+  );
 };
 
 export const getUserShareDetail = (shareId: number) => {
-  return http.request<UserShareDetailResult>("get", "/system/user/share-detail", {
-    params: { shareId }
-  });
+  return http.request<UserShareDetailResult>(
+    "get",
+    "/system/user/share-detail",
+    {
+      params: { shareId }
+    }
+  );
 };
 
 export const deleteUserShare = (shareId: number) => {
@@ -387,9 +413,13 @@ export const getSystemConfigList = () => {
 };
 
 export const getSystemConfigDetail = (key: SystemConfigKey) => {
-  return http.request<SystemConfigDetailResult>("get", "/system/config/detail", {
-    params: { key }
-  });
+  return http.request<SystemConfigDetailResult>(
+    "get",
+    "/system/config/detail",
+    {
+      params: { key }
+    }
+  );
 };
 
 export const saveSystemConfig = (data: SaveSystemConfigPayload) => {
@@ -415,9 +445,13 @@ export const saveAdmin = (data: AdminSavePayload) => {
 };
 
 export const resetAdminPassword = (data: ResetAdminPasswordPayload) => {
-  return http.request<UserActionResult>("post", "/system/admin/reset-password", {
-    data
-  });
+  return http.request<UserActionResult>(
+    "post",
+    "/system/admin/reset-password",
+    {
+      data
+    }
+  );
 };
 
 export const updateAdminStatus = (data: UpdateAdminStatusPayload) => {

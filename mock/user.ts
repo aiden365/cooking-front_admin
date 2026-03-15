@@ -104,6 +104,7 @@ interface AdminSaveBody {
   account: string;
   age: number;
   gender: "男" | "女";
+  status: 1 | 2 | 3;
 }
 
 const nutritionNames = ["蛋白质", "脂肪", "碳水化合物"];
@@ -526,7 +527,7 @@ export default defineFakeRoute([
     response: ({ query }) => {
       const adminId = Number(query?.adminId);
       const admin = adminList.find(item => item.id === adminId) ?? adminList[0];
-      const { registerTime: _registerTime, status: _status, ...detail } = admin;
+      const { registerTime: _registerTime, ...detail } = admin;
       return {
         success: true,
         code: 200,
@@ -547,6 +548,7 @@ export default defineFakeRoute([
           target.account = payload.account;
           target.age = payload.age;
           target.gender = payload.gender;
+          target.status = payload.status;
         }
       } else {
         const nextId = adminList.length > 0 ? Math.max(...adminList.map(item => item.id)) + 1 : 1;
@@ -556,7 +558,7 @@ export default defineFakeRoute([
           account: payload.account,
           age: payload.age,
           gender: payload.gender,
-          status: 2,
+          status: payload.status,
           registerTime: new Date().toISOString().slice(0, 19).replace("T", " ")
         });
       }

@@ -24,6 +24,7 @@ interface AdminForm {
   id?: number;
   username: string;
   account: string;
+  status: 1 | 2 | 3;
   age: number | null;
   gender: "男" | "女";
 }
@@ -59,6 +60,7 @@ const searchForm = reactive<SearchForm>({
 const adminForm = reactive<AdminForm>({
   username: "",
   account: "",
+  status: 1,
   age: null,
   gender: "男"
 });
@@ -72,6 +74,7 @@ const passwordForm = reactive<PasswordForm>({
 const adminRules: FormRules<AdminForm> = {
   username: [{ required: true, message: "请输入管理员姓名", trigger: "blur" }],
   account: [{ required: true, message: "请输入账户", trigger: "blur" }],
+  status: [{ required: true, message: "请选择状态", trigger: "change" }],
   age: [{ required: true, message: "请输入年龄", trigger: "change" }],
   gender: [{ required: true, message: "请选择性别", trigger: "change" }]
 };
@@ -119,6 +122,7 @@ function resetAdminForm() {
   adminForm.id = undefined;
   adminForm.username = "";
   adminForm.account = "";
+  adminForm.status = 1;
   adminForm.age = null;
   adminForm.gender = "男";
 }
@@ -139,6 +143,7 @@ async function openEditDialog(row: AdminListItem) {
     adminForm.id = row.id;
     adminForm.username = result.data.username;
     adminForm.account = result.data.account;
+    adminForm.status = result.data.status;
     adminForm.age = result.data.age;
     adminForm.gender = result.data.gender;
   } finally {
@@ -156,6 +161,7 @@ async function saveAdminForm() {
       id: adminForm.id,
       username: adminForm.username.trim(),
       account: adminForm.account.trim(),
+      status: adminForm.status,
       age: adminForm.age,
       gender: adminForm.gender
     });
@@ -330,6 +336,17 @@ loadAdminList();
           </el-form-item>
           <el-form-item label="账户" prop="account">
             <el-input v-model="adminForm.account" placeholder="请输入账户" />
+          </el-form-item>
+          <el-form-item label="状态" prop="status">
+            <el-select
+              v-model="adminForm.status"
+              class="w-full"
+              placeholder="请选择状态"
+            >
+              <el-option :value="1" label="正常" />
+              <el-option :value="2" label="待审核" />
+              <el-option :value="3" label="禁用" />
+            </el-select>
           </el-form-item>
           <el-form-item label="年龄" prop="age">
             <el-input-number

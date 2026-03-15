@@ -208,7 +208,7 @@ export interface AdminListItem {
   registerTime: string;
 }
 
-export interface AdminDetail extends Omit<AdminListItem, "registerTime" | "status"> {}
+export interface AdminDetail extends Omit<AdminListItem, "registerTime"> {}
 
 export interface AdminSavePayload {
   id?: number;
@@ -216,6 +216,7 @@ export interface AdminSavePayload {
   account: string;
   age: number;
   gender: "男" | "女";
+  status: 1 | 2 | 3;
 }
 
 export interface AdminListResult {

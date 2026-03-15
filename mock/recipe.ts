@@ -1,6 +1,7 @@
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 
 type RecipeVerifyStatus = 1 | 2;
+type RecipeCheckStatus = 1 | 2;
 
 interface RecipeSeasoningItem {
   id: number;
@@ -38,6 +39,7 @@ interface RecipeItem {
   seasoningCount: number;
   stepCount: number;
   durationMinutes: number;
+  checkStatus: RecipeCheckStatus;
   viewCount: number;
   activityValue: number;
   popularityValue: number;
@@ -55,6 +57,7 @@ interface RecipeItem {
 interface CreateRecipeBody {
   name: string;
   durationMinutes: number;
+  checkStatus: RecipeCheckStatus;
   tips: string;
   cover: string;
   seasonings: Array<{
@@ -169,6 +172,7 @@ const recipeList: RecipeItem[] = Array.from({ length: 60 }, (_, index) => {
     seasoningCount: seasonings.length,
     stepCount: steps.length,
     durationMinutes: 15 + index * 2,
+    checkStatus: index % 2 === 0 ? 1 : 2,
     viewCount: 800 + index * 137,
     activityValue: 65 + (index % 12) * 3,
     popularityValue: 78 + (index % 10) * 4,
@@ -225,6 +229,7 @@ export default defineFakeRoute([
           seasoningCount: item.seasoningCount,
           stepCount: item.stepCount,
           durationMinutes: item.durationMinutes,
+          checkStatus: item.checkStatus,
           viewCount: item.viewCount,
           activityValue: item.activityValue,
           popularityValue: item.popularityValue,
@@ -347,10 +352,12 @@ export default defineFakeRoute([
         seasoningCount: recipeBody.seasonings.length,
         stepCount: recipeBody.steps.length,
         durationMinutes: recipeBody.durationMinutes,
+        checkStatus: recipeBody.checkStatus,
         viewCount: 0,
         activityValue: 0,
         popularityValue: 0,
-        verifyStatus: "unverified",
+        comprehensiveScore: 0,
+        verifyStatus: recipeBody.checkStatus,
         tags: recipeBody.tips ? ["待校验"] : [],
         createdAt: new Date().toISOString().slice(0, 10),
         tips: recipeBody.tips,

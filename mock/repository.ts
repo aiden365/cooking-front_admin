@@ -1,9 +1,13 @@
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 
+type RepositoryType = 1 | 2;
+
 interface RepositoryItem {
   id: number;
   name: string;
+  type: RepositoryType;
   description: string;
+  content: string;
   fileName: string;
   fileUrl: string;
   creatorName: string;
@@ -13,18 +17,21 @@ interface RepositoryItem {
 interface RepositorySaveBody {
   id?: number;
   name: string;
+  type: RepositoryType;
   description: string;
-  fileName: string;
-  fileUrl: string;
+  content: string;
 }
 
 const repositoryList: RepositoryItem[] = Array.from({ length: 16 }, (_, index) => {
   const isPdf = index % 2 === 0;
+  const type = index % 2 === 0 ? 1 : 2;
   return {
     id: index + 1,
     name: `知识文档 ${index + 1}`,
+    type,
     description:
       "用于支撑智能菜谱问答的知识文档，包含食材营养、疾病禁忌和烹饪技巧等结构化内容。",
+    content: `<p>${type === 1 ? "菜谱知识" : "营养知识"}正文内容 ${index + 1}</p><p>这里是用于展示富文本回填的模拟内容。</p>`,
     fileName: `${1741708800000 + index * 60000}.${isPdf ? "pdf" : "txt"}`,
     fileUrl: `https://example.com/files/repository-${index + 1}.${isPdf ? "pdf" : "txt"}`,
     creatorName: ["管理员A", "管理员B", "营养师小林"][index % 3],
@@ -88,18 +95,20 @@ export default defineFakeRoute([
         const target = repositoryList.find(item => item.id === payload.id);
         if (target) {
           target.name = payload.name;
+          target.type = payload.type;
           target.description = payload.description;
-          target.fileName = payload.fileName;
-          target.fileUrl = payload.fileUrl;
+          target.content = payload.content;
         }
       } else {
         const nextId = repositoryList.length > 0 ? Math.max(...repositoryList.map(item => item.id)) + 1 : 1;
         repositoryList.unshift({
           id: nextId,
           name: payload.name,
+          type: payload.type,
           description: payload.description,
-          fileName: payload.fileName,
-          fileUrl: payload.fileUrl,
+          content: payload.content,
+          fileName: `${Date.now()}.html`,
+          fileUrl: `https://example.com/files/repository-${nextId}.html`,
           creatorName: "当前管理员",
           createdAt: new Date().toISOString().slice(0, 19).replace("T", " ")
         });

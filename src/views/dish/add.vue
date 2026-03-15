@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
-import { ElMessage, type FormInstance, type FormRules, type UploadFile, type UploadProps } from "element-plus";
+import {
+  ElMessage,
+  type FormInstance,
+  type FormRules,
+  type UploadFile,
+  type UploadProps
+} from "element-plus";
 import {
   createRecipe,
   type CreateRecipePayload,
@@ -17,6 +23,7 @@ defineOptions({
 interface DishInfoForm {
   name: string;
   durationMinutes: string;
+  checkStatus: 1 | 2;
   tips: string;
   cover: string;
 }
@@ -58,6 +65,7 @@ const fixedPageSize = 5;
 const dishInfoForm = reactive<DishInfoForm>({
   name: "",
   durationMinutes: "",
+  checkStatus: 1,
   tips: "",
   cover: ""
 });
@@ -172,7 +180,8 @@ const filteredRecipeSteps = computed(() => {
   return keyword
     ? recipeSteps.value.filter(
         item =>
-          item.description.includes(keyword) || String(item.order).includes(keyword)
+          item.description.includes(keyword) ||
+          String(item.order).includes(keyword)
       )
     : recipeSteps.value;
 });
@@ -183,11 +192,17 @@ const pagedSeasonings = computed(() => {
 });
 const pagedIngredients = computed(() => {
   const start = (ingredientState.pageNum - 1) * ingredientState.pageSize;
-  return filteredIngredients.value.slice(start, start + ingredientState.pageSize);
+  return filteredIngredients.value.slice(
+    start,
+    start + ingredientState.pageSize
+  );
 });
 const pagedRecipeSteps = computed(() => {
   const start = (recipeStepState.pageNum - 1) * recipeStepState.pageSize;
-  return filteredRecipeSteps.value.slice(start, start + recipeStepState.pageSize);
+  return filteredRecipeSteps.value.slice(
+    start,
+    start + recipeStepState.pageSize
+  );
 });
 
 const seasoningDialogTitle = computed(() =>
@@ -272,7 +287,9 @@ async function saveSeasoning() {
   if (!valid) return;
 
   if (seasoningDialogForm.id) {
-    const target = seasonings.value.find(item => item.id === seasoningDialogForm.id);
+    const target = seasonings.value.find(
+      item => item.id === seasoningDialogForm.id
+    );
     if (target) {
       target.name = seasoningDialogForm.name;
       target.dosage = seasoningDialogForm.dosage;
@@ -295,7 +312,9 @@ async function saveIngredient() {
   if (!valid) return;
 
   if (ingredientDialogForm.id) {
-    const target = ingredients.value.find(item => item.id === ingredientDialogForm.id);
+    const target = ingredients.value.find(
+      item => item.id === ingredientDialogForm.id
+    );
     if (target) {
       target.name = ingredientDialogForm.name;
       target.dosage = ingredientDialogForm.dosage;
@@ -320,7 +339,9 @@ async function saveRecipeStep() {
   if (!valid) return;
 
   if (recipeStepDialogForm.id) {
-    const target = recipeSteps.value.find(item => item.id === recipeStepDialogForm.id);
+    const target = recipeSteps.value.find(
+      item => item.id === recipeStepDialogForm.id
+    );
     if (target) {
       target.order = Number(recipeStepDialogForm.order);
       target.description = recipeStepDialogForm.description;
@@ -375,6 +396,7 @@ async function submitRecipe() {
   const payload: CreateRecipePayload = {
     name: dishInfoForm.name,
     durationMinutes: Number(dishInfoForm.durationMinutes),
+    checkStatus: dishInfoForm.checkStatus,
     tips: dishInfoForm.tips,
     cover: dishInfoForm.cover,
     seasonings: seasonings.value.map(item => ({
@@ -449,6 +471,16 @@ async function goNext() {
             placeholder="请输入预计用时（分钟）"
           />
         </el-form-item>
+        <el-form-item label="校验状态" prop="checkStatus" required>
+          <el-select
+            v-model="dishInfoForm.checkStatus"
+            placeholder="请选择校验状态"
+            class="w-full"
+          >
+            <el-option :value="1" label="未经人工校验" />
+            <el-option :value="2" label="经过人工校验" />
+          </el-select>
+        </el-form-item>
         <el-form-item label="小贴士" prop="tips">
           <el-input
             v-model="dishInfoForm.tips"
@@ -467,8 +499,13 @@ async function goNext() {
             :on-change="onCoverChange"
           >
             <div class="space-y-2">
-              <IconifyIconOnline icon="ep:upload-filled" class="text-[24px] text-primary" />
-              <div class="text-sm text-text_color_regular">点击或拖拽上传菜品图片</div>
+              <IconifyIconOnline
+                icon="ep:upload-filled"
+                class="text-[24px] text-primary"
+              />
+              <div class="text-sm text-text_color_regular">
+                点击或拖拽上传菜品图片
+              </div>
             </div>
           </el-upload>
           <div v-if="dishInfoForm.cover" class="mt-4">
@@ -490,15 +527,21 @@ async function goNext() {
             class="w-[260px]"
             @input="handleSearchSection(seasoningState)"
           />
-          <el-button type="primary" @click="openSeasoningDialog()">添加调料</el-button>
+          <el-button type="primary" @click="openSeasoningDialog()"
+            >添加调料</el-button
+          >
         </div>
         <el-table :data="pagedSeasonings" border>
           <el-table-column label="调料名" prop="name" min-width="220" />
           <el-table-column label="用量" prop="dosage" min-width="180" />
           <el-table-column label="操作" width="180" align="center">
             <template #default="{ row }">
-              <el-button link type="primary" @click="openSeasoningDialog(row)">编辑</el-button>
-              <el-button link type="danger" @click="deleteSeasoning(row.id)">删除</el-button>
+              <el-button link type="primary" @click="openSeasoningDialog(row)"
+                >编辑</el-button
+              >
+              <el-button link type="danger" @click="deleteSeasoning(row.id)"
+                >删除</el-button
+              >
             </template>
           </el-table-column>
           <template #empty>
@@ -525,7 +568,9 @@ async function goNext() {
             class="w-[260px]"
             @input="handleSearchSection(ingredientState)"
           />
-          <el-button type="primary" @click="openIngredientDialog()">添加食材</el-button>
+          <el-button type="primary" @click="openIngredientDialog()"
+            >添加食材</el-button
+          >
         </div>
         <el-table :data="pagedIngredients" border>
           <el-table-column label="食材名" prop="name" min-width="180" />
@@ -538,8 +583,12 @@ async function goNext() {
           />
           <el-table-column label="操作" width="180" align="center">
             <template #default="{ row }">
-              <el-button link type="primary" @click="openIngredientDialog(row)">编辑</el-button>
-              <el-button link type="danger" @click="deleteIngredient(row.id)">删除</el-button>
+              <el-button link type="primary" @click="openIngredientDialog(row)"
+                >编辑</el-button
+              >
+              <el-button link type="danger" @click="deleteIngredient(row.id)"
+                >删除</el-button
+              >
             </template>
           </el-table-column>
           <template #empty>
@@ -566,10 +615,17 @@ async function goNext() {
             class="w-[260px]"
             @input="handleSearchSection(recipeStepState)"
           />
-          <el-button type="primary" @click="openRecipeStepDialog()">添加制作步骤</el-button>
+          <el-button type="primary" @click="openRecipeStepDialog()"
+            >添加制作步骤</el-button
+          >
         </div>
         <el-table :data="pagedRecipeSteps" border>
-          <el-table-column label="第几步" prop="order" width="120" align="center" />
+          <el-table-column
+            label="第几步"
+            prop="order"
+            width="120"
+            align="center"
+          />
           <el-table-column
             label="描述"
             prop="description"
@@ -584,8 +640,12 @@ async function goNext() {
           />
           <el-table-column label="操作" width="180" align="center">
             <template #default="{ row }">
-              <el-button link type="primary" @click="openRecipeStepDialog(row)">编辑</el-button>
-              <el-button link type="danger" @click="deleteRecipeStep(row.id)">删除</el-button>
+              <el-button link type="primary" @click="openRecipeStepDialog(row)"
+                >编辑</el-button
+              >
+              <el-button link type="danger" @click="deleteRecipeStep(row.id)"
+                >删除</el-button
+              >
             </template>
           </el-table-column>
           <template #empty>
@@ -603,11 +663,18 @@ async function goNext() {
         </div>
       </template>
 
-      <div v-else class="flex min-h-[420px] flex-col items-center justify-center gap-6">
-        <div class="flex h-28 w-28 items-center justify-center rounded-full bg-[#67c23a] text-white">
+      <div
+        v-else
+        class="flex min-h-[420px] flex-col items-center justify-center gap-6"
+      >
+        <div
+          class="flex h-28 w-28 items-center justify-center rounded-full bg-[#67c23a] text-white"
+        >
           <IconifyIconOnline icon="ep:select" class="text-[52px]" />
         </div>
-        <div class="text-4xl font-semibold text-text_color_primary">提交成功</div>
+        <div class="text-4xl font-semibold text-text_color_primary">
+          提交成功
+        </div>
       </div>
     </el-card>
 
@@ -620,7 +687,11 @@ async function goNext() {
       </el-button>
     </div>
 
-    <el-dialog v-model="seasoningDialogVisible" :title="seasoningDialogTitle" width="520px">
+    <el-dialog
+      v-model="seasoningDialogVisible"
+      :title="seasoningDialogTitle"
+      width="520px"
+    >
       <el-form
         ref="seasoningDialogRef"
         :model="seasoningDialogForm"
@@ -628,10 +699,16 @@ async function goNext() {
         label-position="top"
       >
         <el-form-item label="调料名" prop="name">
-          <el-input v-model="seasoningDialogForm.name" placeholder="请输入调料名" />
+          <el-input
+            v-model="seasoningDialogForm.name"
+            placeholder="请输入调料名"
+          />
         </el-form-item>
         <el-form-item label="用量" prop="dosage">
-          <el-input v-model="seasoningDialogForm.dosage" placeholder="请输入用量" />
+          <el-input
+            v-model="seasoningDialogForm.dosage"
+            placeholder="请输入用量"
+          />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -640,7 +717,11 @@ async function goNext() {
       </template>
     </el-dialog>
 
-    <el-dialog v-model="ingredientDialogVisible" :title="ingredientDialogTitle" width="560px">
+    <el-dialog
+      v-model="ingredientDialogVisible"
+      :title="ingredientDialogTitle"
+      width="560px"
+    >
       <el-form
         ref="ingredientDialogRef"
         :model="ingredientDialogForm"
@@ -648,10 +729,16 @@ async function goNext() {
         label-position="top"
       >
         <el-form-item label="食材名" prop="name">
-          <el-input v-model="ingredientDialogForm.name" placeholder="请输入食材名" />
+          <el-input
+            v-model="ingredientDialogForm.name"
+            placeholder="请输入食材名"
+          />
         </el-form-item>
         <el-form-item label="用量" prop="dosage">
-          <el-input v-model="ingredientDialogForm.dosage" placeholder="请输入用量" />
+          <el-input
+            v-model="ingredientDialogForm.dosage"
+            placeholder="请输入用量"
+          />
         </el-form-item>
         <el-form-item label="处理方式" prop="preparation">
           <el-input
@@ -668,7 +755,11 @@ async function goNext() {
       </template>
     </el-dialog>
 
-    <el-dialog v-model="recipeStepDialogVisible" :title="recipeStepDialogTitle" width="620px">
+    <el-dialog
+      v-model="recipeStepDialogVisible"
+      :title="recipeStepDialogTitle"
+      width="620px"
+    >
       <el-form
         ref="recipeStepDialogRef"
         :model="recipeStepDialogForm"

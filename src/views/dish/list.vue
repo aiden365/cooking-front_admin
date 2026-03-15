@@ -182,7 +182,7 @@ onMounted(() => {
         <el-table-column
           label="菜名"
           prop="name"
-          min-width="220"
+          min-width="120"
           show-overflow-tooltip
         >
           <template #default="{ row }">
@@ -220,27 +220,27 @@ onMounted(() => {
           </template>
         </el-table-column>
         <el-table-column
-          label="菜品浏览量"
+          label="浏览量"
           prop="viewCount"
-          min-width="100"
+          min-width="70"
           align="center"
         />
         <el-table-column
-          label="菜谱活跃值"
+          label="活跃值"
           prop="activityValue"
-          min-width="100"
+          min-width="70"
           align="center"
         />
         <el-table-column
-          label="菜谱人气值"
+          label="人气值"
           prop="popularityValue"
-          min-width="100"
+          min-width="70"
           align="center"
         />
         <el-table-column
           label="综合评分"
           prop="comprehensiveScore"
-          min-width="100"
+          min-width="80"
           align="center"
         />
         <el-table-column label="检查状态" min-width="120" align="center">

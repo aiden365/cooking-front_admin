@@ -80,11 +80,11 @@ onMounted(() => {
   <div class="space-y-4">
     <el-card shadow="never">
       <el-form inline :model="searchForm" class="flex flex-wrap gap-y-2">
-        <el-form-item label="名称" class="mb-0!">
+        <el-form-item label="关键字" class="mb-0!">
           <el-input
             v-model="searchForm.keyword"
             clearable
-            placeholder="请输入名称"
+            placeholder="请输入关键字"
             class="w-[260px]"
             @keyup.enter="handleSearch"
           />

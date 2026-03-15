@@ -234,7 +234,7 @@ loadAdminList();
             v-model="searchForm.status"
             clearable
             placeholder="请选择用户状态"
-            class="w-[180px]"
+            style="width: 180px"
           >
             <el-option :value="1" label="正常" />
             <el-option :value="2" label="待审核" />
@@ -245,7 +245,9 @@ loadAdminList();
           <el-button type="primary" @click="handleSearch">搜索</el-button>
         </el-form-item>
         <el-form-item class="mb-0! ml-auto">
-          <el-button type="primary" @click="openAddDialog">添加管理员</el-button>
+          <el-button type="primary" @click="openAddDialog"
+            >添加管理员</el-button
+          >
         </el-form-item>
       </el-form>
     </el-card>
@@ -273,10 +275,19 @@ loadAdminList();
           </template>
         </el-table-column>
         <el-table-column label="注册时间" prop="registerTime" min-width="180" />
-        <el-table-column label="操作" fixed="right" min-width="240" align="center">
+        <el-table-column
+          label="操作"
+          fixed="right"
+          min-width="240"
+          align="center"
+        >
           <template #default="{ row }">
-            <el-button link type="primary" @click="openEditDialog(row)">编辑</el-button>
-            <el-button link type="warning" @click="openPasswordDialog(row)">修改密码</el-button>
+            <el-button link type="primary" @click="openEditDialog(row)"
+              >编辑</el-button
+            >
+            <el-button link type="warning" @click="openPasswordDialog(row)"
+              >修改密码</el-button
+            >
             <el-button
               link
               :type="row.status === 1 ? 'danger' : 'success'"
@@ -312,7 +323,10 @@ loadAdminList();
           label-position="top"
         >
           <el-form-item label="管理员姓名" prop="username">
-            <el-input v-model="adminForm.username" placeholder="请输入管理员姓名" />
+            <el-input
+              v-model="adminForm.username"
+              placeholder="请输入管理员姓名"
+            />
           </el-form-item>
           <el-form-item label="账户" prop="account">
             <el-input v-model="adminForm.account" placeholder="请输入账户" />

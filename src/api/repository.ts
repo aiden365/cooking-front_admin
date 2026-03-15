@@ -1,5 +1,7 @@
 import { http } from "@/utils/http";
 
+export type RepositoryType = 1 | 2;
+
 export interface RepositoryListParams {
   pageNum: number;
   pageSize: number;
@@ -9,7 +11,9 @@ export interface RepositoryListParams {
 export interface RepositoryItem {
   id: number;
   name: string;
+  type: RepositoryType;
   description: string;
+  content: string;
   fileName: string;
   fileUrl: string;
   creatorName: string;
@@ -21,9 +25,9 @@ export interface RepositoryDetail extends RepositoryItem {}
 export interface RepositorySavePayload {
   id?: number;
   name: string;
+  type: RepositoryType;
   description: string;
-  fileName: string;
-  fileUrl: string;
+  content: string;
 }
 
 export interface RepositoryListResult {

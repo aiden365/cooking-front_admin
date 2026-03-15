@@ -1,6 +1,7 @@
 import { http } from "@/utils/http";
 
 export type RecipeVerifyStatus = 1 | 2;
+export type RecipeCheckStatus = 1 | 2;
 
 export interface RecipeListParams {
   pageNum: number;
@@ -43,6 +44,7 @@ export interface RecipeItem {
   seasoningCount: number;
   stepCount: number;
   durationMinutes: number;
+  checkStatus: RecipeCheckStatus;
   viewCount: number;
   activityValue: number;
   popularityValue: number;
@@ -78,6 +80,7 @@ export interface RecipeAppraiseItem {
 export interface CreateRecipePayload {
   name: string;
   durationMinutes: number;
+  checkStatus: RecipeCheckStatus;
   tips: string;
   cover: string;
   seasonings: Array<Pick<RecipeSeasoningItem, "name" | "dosage">>;

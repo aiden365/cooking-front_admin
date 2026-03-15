@@ -71,10 +71,8 @@ onMounted(() => {
           {{ recipe.popularityValue }}
         </el-descriptions-item>
         <el-descriptions-item label="校验状态">
-          <el-tag
-            :type="recipe.verifyStatus === 'verified' ? 'success' : 'warning'"
-          >
-            {{ recipe.verifyStatus === "verified" ? "已校验" : "未校验" }}
+          <el-tag :type="recipe.verifyStatus === 2 ? 'success' : 'warning'">
+            {{ recipe.verifyStatus === 2 ? "已校验" : "未校验" }}
           </el-tag>
         </el-descriptions-item>
         <el-descriptions-item label="标签" :span="2">

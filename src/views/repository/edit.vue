@@ -186,7 +186,11 @@ onBeforeUnmount(() => {
         </el-form-item>
 
         <el-form-item label="类型" prop="type">
-          <el-select v-model="form.type" class="w-full" placeholder="请选择类型">
+          <el-select
+            v-model="form.type"
+            class="w-full"
+            placeholder="请选择类型"
+          >
             <el-option :value="1" label="菜谱知识" />
             <el-option :value="2" label="营养知识" />
           </el-select>
@@ -209,7 +213,7 @@ onBeforeUnmount(() => {
               ref="toolbarRef"
               class="border-0 border-b border-solid border-[#ebeef5]"
             />
-            <div ref="editorRef" class="min-h-[360px]" />
+            <div ref="editorRef" class="max-h-[150px]" />
           </div>
         </el-form-item>
 

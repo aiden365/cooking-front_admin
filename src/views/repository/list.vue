@@ -6,7 +6,8 @@ import {
   deleteRepository,
   getRepositoryList,
   type RepositoryItem,
-  type RepositoryListParams
+  type RepositoryListParams,
+  type RepositoryType
 } from "@/api/repository";
 
 defineOptions({
@@ -15,6 +16,7 @@ defineOptions({
 
 interface SearchForm {
   keyword: string;
+  type: RepositoryType | "";
 }
 
 const router = useRouter();
@@ -28,7 +30,8 @@ const pagination = reactive({
 });
 
 const searchForm = reactive<SearchForm>({
-  keyword: ""
+  keyword: "",
+  type: ""
 });
 
 async function loadRepositoryList() {
@@ -37,7 +40,8 @@ async function loadRepositoryList() {
     const params: RepositoryListParams = {
       pageNum: pagination.pageNum,
       pageSize: pagination.pageSize,
-      keyword: searchForm.keyword.trim()
+      keyword: searchForm.keyword.trim(),
+      type: searchForm.type
     };
     const result = await getRepositoryList(params);
     repositoryList.value = result.data.list;
@@ -71,6 +75,14 @@ function handleCurrentChange(page: number) {
   loadRepositoryList();
 }
 
+function getTypeLabel(type: RepositoryType) {
+  return type === 1 ? "菜谱知识" : "营养知识";
+}
+
+function getTypeTagType(type: RepositoryType) {
+  return type === 1 ? "success" : "warning";
+}
+
 onMounted(() => {
   loadRepositoryList();
 });
@@ -88,6 +100,17 @@ onMounted(() => {
             class="w-[260px]"
             @keyup.enter="handleSearch"
           />
+        </el-form-item>
+        <el-form-item label="类型" class="mb-0!">
+          <el-select
+            v-model="searchForm.type"
+            clearable
+            placeholder="请选择类型"
+            style="width: 180px"
+          >
+            <el-option :value="1" label="菜谱知识" />
+            <el-option :value="2" label="营养知识" />
+          </el-select>
         </el-form-item>
         <el-form-item class="mb-0!">
           <el-button type="primary" @click="handleSearch">搜索</el-button>
@@ -110,6 +133,13 @@ onMounted(() => {
         }"
       >
         <el-table-column label="名称" prop="name" min-width="180" />
+        <el-table-column label="类型" min-width="120" align="center">
+          <template #default="{ row }">
+            <el-tag :type="getTypeTagType(row.type)" effect="light">
+              {{ getTypeLabel(row.type) }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           label="描述"
           prop="description"

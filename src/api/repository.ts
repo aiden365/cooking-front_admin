@@ -6,6 +6,7 @@ export interface RepositoryListParams {
   pageNum: number;
   pageSize: number;
   keyword?: string;
+  type?: RepositoryType | "";
 }
 
 export interface RepositoryItem {

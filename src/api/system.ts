@@ -254,7 +254,8 @@ export type SystemConfigKey =
   | "maxDishLabels"
   | "nutritionNames"
   | "maxNutritionTargets"
-  | "emailConfig";
+  | "emailConfig"
+  | "maxUserLoginCount";
 
 export interface SystemConfigCardItem {
   key: SystemConfigKey;

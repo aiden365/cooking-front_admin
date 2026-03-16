@@ -7,7 +7,8 @@ import {
   Opportunity,
   Search,
   SetUp,
-  Message
+  Message,
+  User
 } from "@element-plus/icons-vue";
 import {
   getSystemConfigDetail,
@@ -74,6 +75,7 @@ const nutritionForm = reactive<NutritionForm>({
 const iconMap: Record<SystemConfigKey, ConfigIcon> = {
   aiModel: Key,
   maxUserLabels: Opportunity,
+  maxUserLoginCount: User,
   maxDishLabels: SetUp,
   nutritionNames: Connection,
   maxNutritionTargets: Opportunity,

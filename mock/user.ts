@@ -69,7 +69,8 @@ type SystemConfigKey =
   | "maxDishLabels"
   | "nutritionNames"
   | "maxNutritionTargets"
-  | "emailConfig";
+  | "emailConfig"
+  | "maxUserLoginCount";
 
 interface AiModelConfig {
   ApiUrl: string;
@@ -202,6 +203,11 @@ const systemConfigCards: SystemConfigCardItem[] = [
     description: "限制单个用户可绑定的标签数量上限。"
   },
   {
+    key: "maxUserLoginCount",
+    name: "用户登录次数",
+    description: "限制用户在统计周期内允许的登录次数配置。"
+  },
+  {
     key: "maxDishLabels",
     name: "菜品标签最大数量",
     description: "限制单个菜品可绑定的标签数量上限。"
@@ -224,6 +230,7 @@ const systemConfigStore = {
     ApiKey: "8eb8e487cf3c44e5ac44ce81ee67f6a3"
   },
   maxUserLabels: 6,
+  maxUserLoginCount: 5,
   maxDishLabels: 8,
   nutritionNames: [...nutritionNames],
   maxNutritionTargets: 3
@@ -493,6 +500,7 @@ export default defineFakeRoute([
 
       if (
         (payload.key === "maxUserLabels" ||
+          payload.key === "maxUserLoginCount" ||
           payload.key === "maxDishLabels" ||
           payload.key === "maxNutritionTargets") &&
         typeof payload.maxCount === "number"

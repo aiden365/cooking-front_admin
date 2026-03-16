@@ -63,6 +63,20 @@ interface NutritionSaveBody {
   targetValue: string;
 }
 
+interface SystemNutritionItem {
+  id: number;
+  name: string;
+  defaultValue: string;
+  createdAt: string;
+  creatorName: string;
+}
+
+interface SystemNutritionSaveBody {
+  id?: number;
+  name: string;
+  defaultValue: string;
+}
+
 type SystemConfigKey =
   | "aiModel"
   | "maxUserLabels"
@@ -255,6 +269,65 @@ const adminList: AdminItem[] = Array.from({ length: 18 }, (_, index) => ({
   status: ([1, 2, 3] as const)[index % 3],
   registerTime: `2026-01-${String((index % 28) + 1).padStart(2, "0")} 09:${String((index * 7) % 60).padStart(2, "0")}:00`
 }));
+
+const systemNutritionElements: SystemNutritionItem[] = [
+  {
+    id: 1,
+    name: "蛋白质",
+    defaultValue: "60g",
+    createdAt: "2026-03-01 10:00:00",
+    creatorName: "系统管理员"
+  },
+  {
+    id: 2,
+    name: "脂肪",
+    defaultValue: "50g",
+    createdAt: "2026-03-02 10:00:00",
+    creatorName: "系统管理员"
+  },
+  {
+    id: 3,
+    name: "碳水化合物",
+    defaultValue: "250g",
+    createdAt: "2026-03-03 10:00:00",
+    creatorName: "营养配置员"
+  },
+  {
+    id: 4,
+    name: "膳食纤维",
+    defaultValue: "25g",
+    createdAt: "2026-03-04 10:00:00",
+    creatorName: "营养配置员"
+  },
+  {
+    id: 5,
+    name: "钙",
+    defaultValue: "800mg",
+    createdAt: "2026-03-05 10:00:00",
+    creatorName: "平台维护员"
+  },
+  {
+    id: 6,
+    name: "铁",
+    defaultValue: "15mg",
+    createdAt: "2026-03-06 10:00:00",
+    creatorName: "平台维护员"
+  },
+  {
+    id: 7,
+    name: "维生素C",
+    defaultValue: "100mg",
+    createdAt: "2026-03-07 10:00:00",
+    creatorName: "超级管理员"
+  },
+  {
+    id: 8,
+    name: "钠",
+    defaultValue: "2000mg",
+    createdAt: "2026-03-08 10:00:00",
+    creatorName: "超级管理员"
+  }
+];
 
 function parseNumber(value: unknown, fallback: number) {
   const parsed = Number(value);
@@ -626,6 +699,98 @@ export default defineFakeRoute([
         code: 200,
         data: null,
         message: "状态更新成功"
+      };
+    }
+  },
+  {
+    url: "/system/nutrition-element/list",
+    method: "get",
+    response: ({ query }) => {
+      const pageNum = parseNumber(query?.pageNum, 1);
+      const pageSize = parseNumber(query?.pageSize, 7);
+      const keyword = String(query?.keyword ?? "").trim();
+
+      const filteredList = systemNutritionElements.filter(item =>
+        keyword ? item.name.includes(keyword) : true
+      );
+      const startIndex = (pageNum - 1) * pageSize;
+      const list = filteredList.slice(startIndex, startIndex + pageSize);
+
+      return {
+        success: true,
+        code: 200,
+        data: {
+          list,
+          total: filteredList.length,
+          pageNum,
+          pageSize
+        },
+        message: "请求成功"
+      };
+    }
+  },
+  {
+    url: "/system/nutrition-element/detail",
+    method: "get",
+    response: ({ query }) => {
+      const id = Number(query?.id);
+      const target =
+        systemNutritionElements.find(item => item.id === id) ??
+        systemNutritionElements[0];
+      return {
+        success: true,
+        code: 200,
+        data: {
+          id: target.id,
+          name: target.name,
+          defaultValue: target.defaultValue
+        },
+        message: "请求成功"
+      };
+    }
+  },
+  {
+    url: "/system/nutrition-element/save",
+    method: "post",
+    response: ({ body }) => {
+      const payload = body as SystemNutritionSaveBody;
+      if (payload.id) {
+        const target = systemNutritionElements.find(item => item.id === payload.id);
+        if (target) {
+          target.name = payload.name;
+          target.defaultValue = payload.defaultValue;
+        }
+      } else {
+        const nextId =
+          systemNutritionElements.length > 0
+            ? Math.max(...systemNutritionElements.map(item => item.id)) + 1
+            : 1;
+        systemNutritionElements.unshift({
+          id: nextId,
+          name: payload.name,
+          defaultValue: payload.defaultValue,
+          createdAt: new Date().toISOString().slice(0, 19).replace("T", " "),
+          creatorName: "当前管理员"
+        });
+      }
+
+      return {
+        success: true,
+        code: 200,
+        data: null,
+        message: "保存成功"
+      };
+    }
+  },
+  {
+    url: "/system/nutrition-element/delete",
+    method: "post",
+    response: () => {
+      return {
+        success: true,
+        code: 200,
+        data: null,
+        message: "删除成功"
       };
     }
   },

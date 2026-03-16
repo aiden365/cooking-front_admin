@@ -218,7 +218,16 @@ const systemRouter = {
       name: "ConfigList",
       component: "system/config-list",
       meta: {
-        title: "参数配置",
+        title: "系统参数管理",
+        showParent: true
+      }
+    },
+    {
+      path: "/system/nutrition-list",
+      name: "SystemNutritionList",
+      component: "system/nutrition-list",
+      meta: {
+        title: "营养元素管理",
         showParent: true
       }
     }

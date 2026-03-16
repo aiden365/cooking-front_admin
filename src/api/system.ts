@@ -191,6 +191,47 @@ export interface SaveUserNutritionTargetPayload {
   targetValue: string;
 }
 
+export interface SystemNutritionListParams {
+  pageNum: number;
+  pageSize: number;
+  keyword?: string;
+}
+
+export interface SystemNutritionItem {
+  id: number;
+  name: string;
+  defaultValue: string;
+  createdAt: string;
+  creatorName: string;
+}
+
+export interface SystemNutritionDetail extends Omit<SystemNutritionItem, "createdAt" | "creatorName"> {}
+
+export interface SystemNutritionSavePayload {
+  id?: number;
+  name: string;
+  defaultValue: string;
+}
+
+export interface SystemNutritionListResult {
+  success: boolean;
+  code: number;
+  data: {
+    list: SystemNutritionItem[];
+    total: number;
+    pageNum: number;
+    pageSize: number;
+  };
+  message: string;
+}
+
+export interface SystemNutritionDetailResult {
+  success: boolean;
+  code: number;
+  data: SystemNutritionDetail;
+  message: string;
+}
+
 export interface AdminListParams {
   pageNum: number;
   pageSize: number;
@@ -459,4 +500,38 @@ export const updateAdminStatus = (data: UpdateAdminStatusPayload) => {
   return http.request<UserActionResult>("post", "/system/admin/update-status", {
     data
   });
+};
+
+export const getSystemNutritionList = (params: SystemNutritionListParams) => {
+  return http.request<SystemNutritionListResult>(
+    "get",
+    "/system/nutrition-element/list",
+    { params }
+  );
+};
+
+export const getSystemNutritionDetail = (id: number) => {
+  return http.request<SystemNutritionDetailResult>(
+    "get",
+    "/system/nutrition-element/detail",
+    {
+      params: { id }
+    }
+  );
+};
+
+export const saveSystemNutrition = (data: SystemNutritionSavePayload) => {
+  return http.request<UserActionResult>("post", "/system/nutrition-element/save", {
+    data
+  });
+};
+
+export const deleteSystemNutrition = (id: number) => {
+  return http.request<UserActionResult>(
+    "post",
+    "/system/nutrition-element/delete",
+    {
+      data: { id }
+    }
+  );
 };

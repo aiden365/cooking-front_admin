@@ -206,11 +206,11 @@ const systemConfigCards: SystemConfigCardItem[] = [
     name: "AI大模型配置",
     description: "维护 AI 大模型调用地址和访问密钥。"
   }, */
-  {
+  /* {
     key: "emailConfig",
     name: "邮件服务配置",
     description: "维护 SMTP邮件服务 调用的相关配置参数。"
-  },
+  }, */
   {
     key: "maxUserLabels",
     name: "用户标签最大数量",
@@ -226,11 +226,11 @@ const systemConfigCards: SystemConfigCardItem[] = [
     name: "菜品标签最大数量",
     description: "限制单个菜品可绑定的标签数量上限。"
   },
-  {
+  /* {
     key: "nutritionNames",
     name: "营养参数配置",
     description: "维护营养参数名称列表，支持动态新增和删除。"
-  },
+  }, */
   {
     key: "maxNutritionTargets",
     name: "营养目标最大数量",
@@ -755,7 +755,9 @@ export default defineFakeRoute([
     response: ({ body }) => {
       const payload = body as SystemNutritionSaveBody;
       if (payload.id) {
-        const target = systemNutritionElements.find(item => item.id === payload.id);
+        const target = systemNutritionElements.find(
+          item => item.id === payload.id
+        );
         if (target) {
           target.name = payload.name;
           target.defaultValue = payload.defaultValue;

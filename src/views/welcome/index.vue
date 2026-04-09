@@ -7,7 +7,7 @@ import { ReNormalCountTo } from "@/components/ReCountTo";
 import { useRenderFlicker } from "@/components/ReFlicker";
 import { ChartBar, ChartLine, ChartRound } from "./components/charts";
 import Segmented, { type OptionsType } from "@/components/ReSegmented";
-import { chartData, barChartData, progressData, latestNewsData } from "./data";
+import { chartData, barChartData, latestNewsData } from "./data";
 
 defineOptions({
   name: "Welcome"
@@ -74,7 +74,7 @@ const optionsBasis: Array<OptionsType> = [
               <ReNormalCountTo
                 :duration="item.duration"
                 :fontSize="'1.6em'"
-                :startVal="100"
+                :startVal="1"
                 :endVal="item.value"
               />
               <p class="font-medium text-green-500">{{ item.percent }}</p>

@@ -12,7 +12,8 @@ export default {
       component: () => import("@/views/system/admin-list.vue"),
       meta: {
         title: "管理员列表",
-        showParent: true
+        showParent: true,
+        showLink: false
       }
     },
     {

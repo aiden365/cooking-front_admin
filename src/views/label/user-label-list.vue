@@ -2,30 +2,30 @@
 import { onMounted, reactive, ref } from "vue";
 import { ElMessage, type FormInstance, type FormRules } from "element-plus";
 import {
-  deleteUserLabel,
-  getUserLabelList,
-  saveUserLabel,
-  type DishLabelItem,
-  type DishLabelListParams
+  deleteLabel,
+  getLabelList,
+  saveLabel,
+  type LabelItem,
+  type LabelListParams
 } from "@/api/label";
 
 defineOptions({
-  name: "UserLabelList"
+  name: "DishLabelList"
 });
 
 interface SearchForm {
-  keyword: string;
+  search: string;
 }
 
 interface LabelForm {
   name: string;
-  sort: number | null;
+  type: number | null;
 }
 
 const loading = ref(false);
 const dialogVisible = ref(false);
 const formRef = ref<FormInstance>();
-const labelList = ref<DishLabelItem[]>([]);
+const labelList = ref<LabelItem[]>([]);
 
 const pagination = reactive({
   pageNum: 1,
@@ -34,28 +34,29 @@ const pagination = reactive({
 });
 
 const searchForm = reactive<SearchForm>({
-  keyword: ""
+  search: ""
 });
 
 const labelForm = reactive<LabelForm>({
   name: "",
-  sort: null
+  type: null
 });
 
 const rules: FormRules<LabelForm> = {
   name: [{ required: true, message: "请输入标签名", trigger: "blur" }],
-  sort: [{ required: true, message: "请输入序号", trigger: "change" }]
+  type: [{ required: true, message: "请输入序号", trigger: "change" }]
 };
 
-async function loadUserLabelList() {
+async function loadLabelList() {
   loading.value = true;
   try {
-    const params: DishLabelListParams = {
+    const params: LabelListParams = {
       pageNum: pagination.pageNum,
       pageSize: pagination.pageSize,
-      keyword: searchForm.keyword.trim()
+      type: 1,
+      search: searchForm.search.trim()
     };
-    const result = await getUserLabelList(params);
+    const result = await getLabelList(params);
     labelList.value = result.data.records;
     pagination.total = result.data.total;
   } finally {
@@ -65,41 +66,41 @@ async function loadUserLabelList() {
 
 function handleSearch() {
   pagination.pageNum = 1;
-  loadUserLabelList();
+  loadLabelList();
 }
 
 function openDialog() {
   labelForm.name = "";
-  labelForm.sort = null;
+  labelForm.type = 1;
   dialogVisible.value = true;
 }
 
 async function handleSave() {
   const valid = await formRef.value?.validate().catch(() => false);
-  if (!valid || labelForm.sort === null) return;
+  if (!valid || labelForm.type === null) return;
 
-  await saveUserLabel({
-    name: labelForm.name,
-    sort: Number(labelForm.sort)
+  await saveLabel({
+    labelName: labelForm.name,
+    type: Number(labelForm.type)
   });
   dialogVisible.value = false;
   ElMessage.success("标签添加成功");
-  loadUserLabelList();
+  loadLabelList();
 }
 
-async function handleDelete(row: DishLabelItem) {
-  await deleteUserLabel(row.id);
-  ElMessage.success(`标签「${row.name}」已删除`);
-  loadUserLabelList();
+async function handleDelete(row: LabelItem) {
+  await deleteLabel(row.id);
+  ElMessage.success(`标签「${row.labelName}」已删除`);
+  loadLabelList();
 }
 
 function handleCurrentChange(page: number) {
   pagination.pageNum = page;
-  loadUserLabelList();
+  loadLabelList();
 }
 
 onMounted(() => {
-  loadUserLabelList();
+  loadLabelList();
 });
 </script>
 
@@ -109,7 +110,7 @@ onMounted(() => {
       <el-form inline :model="searchForm" class="flex flex-wrap gap-y-2">
         <el-form-item label="标签名" class="mb-0!">
           <el-input
-            v-model="searchForm.keyword"
+            v-model="searchForm.search"
             clearable
             placeholder="请输入标签名"
             class="w-[260px]"
@@ -136,14 +137,14 @@ onMounted(() => {
           fontWeight: '600'
         }"
       >
-        <el-table-column
+        <!-- <el-table-column
           label="标签序号"
-          prop="sort"
+          prop="type"
           min-width="120"
           align="center"
-        />
-        <el-table-column label="标签名" prop="name" min-width="180" />
-        <el-table-column label="创建时间" prop="createdAt" min-width="180" />
+        /> -->
+        <el-table-column label="标签名" prop="labelName" min-width="180" />
+        <el-table-column label="创建时间" prop="createTime" min-width="180" />
         <el-table-column
           label="操作"
           fixed="right"
@@ -157,7 +158,7 @@ onMounted(() => {
           </template>
         </el-table-column>
         <template #empty>
-          <el-empty description="暂无用户标签数据" />
+          <el-empty description="暂无菜谱标签数据" />
         </template>
       </el-table>
 
@@ -173,7 +174,7 @@ onMounted(() => {
       </div>
     </el-card>
 
-    <el-dialog v-model="dialogVisible" title="添加用户标签" width="520px">
+    <el-dialog v-model="dialogVisible" title="添加菜谱标签" width="520px">
       <el-form
         ref="formRef"
         :model="labelForm"
@@ -182,9 +183,6 @@ onMounted(() => {
       >
         <el-form-item label="标签名" prop="name">
           <el-input v-model="labelForm.name" placeholder="请输入标签名" />
-        </el-form-item>
-        <el-form-item label="序号" prop="sort">
-          <el-input-number v-model="labelForm.sort" :min="1" class="w-full" />
         </el-form-item>
       </el-form>
       <template #footer>

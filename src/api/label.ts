@@ -1,23 +1,25 @@
 import { http } from "@/utils/http";
+import { baseUrlApi } from "./utils";
 
-export interface DishLabelListParams {
+export interface LabelListParams {
   pageNum: number;
   pageSize: number;
-  keyword?: string;
+  search?: string;
+  type: number;
 }
 
-export interface DishLabelItem {
+export interface LabelItem {
   id: number;
-  sort: number;
-  name: string;
-  createdAt: string;
+  type: number;
+  labelName: string;
+  createTime: string;
 }
 
-export interface DishLabelListResult {
+export interface LabelListResult {
   success: boolean;
   code: number;
   data: {
-    records: DishLabelItem[];
+    records: LabelItem[];
     total: number;
     current: number;
     size: number;
@@ -25,14 +27,9 @@ export interface DishLabelListResult {
   message: string;
 }
 
-export interface SaveDishLabelPayload {
-  name: string;
-  sort: number;
-}
-
-export interface SaveUserLabelPayload {
-  name: string;
-  sort: number;
+export interface SaveLabelPayload {
+  labelName: string;
+  type: number;
 }
 
 export interface LabelActionResult {
@@ -42,38 +39,20 @@ export interface LabelActionResult {
   message: string;
 }
 
-export const getDishLabelList = (params: DishLabelListParams) => {
-  return http.request<DishLabelListResult>("get", "/label/dish/list", {
-    params
-  });
-};
-
-export const getUserLabelList = (params: DishLabelListParams) => {
-  return http.request<DishLabelListResult>("get", "/label/user/list", {
-    params
-  });
-};
-
-export const saveDishLabel = (data: SaveDishLabelPayload) => {
-  return http.request<LabelActionResult>("post", "/label/dish/save", {
+export const getLabelList = (data: LabelListParams) => {
+  return http.request<LabelListResult>("post", baseUrlApi("label/page"), {
     data
   });
 };
 
-export const saveUserLabel = (data: SaveUserLabelPayload) => {
-  return http.request<LabelActionResult>("post", "/label/user/save", {
+export const saveLabel = (data: SaveLabelPayload) => {
+  return http.request<LabelActionResult>("post", baseUrlApi("label/save"), {
     data
   });
 };
 
-export const deleteDishLabel = (id: number) => {
-  return http.request<LabelActionResult>("post", "/label/dish/delete", {
-    data: { id }
-  });
-};
-
-export const deleteUserLabel = (id: number) => {
-  return http.request<LabelActionResult>("post", "/label/user/delete", {
+export const deleteLabel = (id: number) => {
+  return http.request<LabelActionResult>("post", baseUrlApi("label/delete"), {
     data: { id }
   });
 };

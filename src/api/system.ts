@@ -93,10 +93,10 @@ export interface UserListResult {
   success: boolean;
   code: number;
   data: {
-    list: UserListItem[];
+    records: UserListItem[];
     total: number;
-    pageNum: number;
-    pageSize: number;
+    current: number;
+    size: number;
   };
   message: string;
 }
@@ -105,10 +105,10 @@ export interface UserShareListResult {
   success: boolean;
   code: number;
   data: {
-    list: UserShareItem[];
+    records: UserShareItem[];
     total: number;
-    pageNum: number;
-    pageSize: number;
+    current: number;
+    size: number;
   };
   message: string;
 }
@@ -117,10 +117,10 @@ export interface UserDietListResult {
   success: boolean;
   code: number;
   data: {
-    list: UserDietItem[];
+    records: UserDietItem[];
     total: number;
-    pageNum: number;
-    pageSize: number;
+    current: number;
+    size: number;
   };
   message: string;
 }
@@ -129,10 +129,10 @@ export interface UserNutritionListResult {
   success: boolean;
   code: number;
   data: {
-    list: UserNutritionItem[];
+    records: UserNutritionItem[];
     total: number;
-    pageNum: number;
-    pageSize: number;
+    current: number;
+    size: number;
   };
   message: string;
 }
@@ -205,7 +205,8 @@ export interface SystemNutritionItem {
   creatorName: string;
 }
 
-export interface SystemNutritionDetail extends Omit<SystemNutritionItem, "createdAt" | "creatorName"> {}
+export interface SystemNutritionDetail
+  extends Omit<SystemNutritionItem, "createdAt" | "creatorName"> {}
 
 export interface SystemNutritionSavePayload {
   id?: number;
@@ -217,10 +218,10 @@ export interface SystemNutritionListResult {
   success: boolean;
   code: number;
   data: {
-    list: SystemNutritionItem[];
+    records: SystemNutritionItem[];
     total: number;
-    pageNum: number;
-    pageSize: number;
+    current: number;
+    size: number;
   };
   message: string;
 }
@@ -264,7 +265,7 @@ export interface AdminListResult {
   success: boolean;
   code: number;
   data: {
-    list: AdminListItem[];
+    records: AdminListItem[];
     total: number;
     pageNum: number;
     pageSize: number;
@@ -521,9 +522,13 @@ export const getSystemNutritionDetail = (id: number) => {
 };
 
 export const saveSystemNutrition = (data: SystemNutritionSavePayload) => {
-  return http.request<UserActionResult>("post", "/system/nutrition-element/save", {
-    data
-  });
+  return http.request<UserActionResult>(
+    "post",
+    "/system/nutrition-element/save",
+    {
+      data
+    }
+  );
 };
 
 export const deleteSystemNutrition = (id: number) => {

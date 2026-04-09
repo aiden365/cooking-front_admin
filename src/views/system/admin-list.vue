@@ -106,7 +106,7 @@ async function loadAdminList() {
       status: searchForm.status
     };
     const result = await getAdminList(params);
-    adminList.value = result.data.list;
+    adminList.value = result.data.records;
     pagination.total = result.data.total;
   } finally {
     loading.value = false;

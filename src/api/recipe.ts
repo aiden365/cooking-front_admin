@@ -5,10 +5,10 @@ export type RecipeVerifyStatus = 1 | 2;
 export type RecipeCheckStatus = 1 | 2;
 
 export interface RecipeListParams {
-  pageNum: number;
+  pageNo: number;
   pageSize: number;
-  keyword?: string;
-  verifyStatus?: RecipeVerifyStatus | "";
+  search?: string;
+  checkStatus?: RecipeVerifyStatus | "";
 }
 
 export interface RecipeAppraiseListParams {
@@ -41,18 +41,17 @@ export interface RecipeItem {
   id: number;
   name: string;
   cover: string;
-  ingredientCount: number;
-  seasoningCount: number;
+  materialCount: number;
+  flavorCount: number;
   stepCount: number;
-  durationMinutes: number;
+  takeTimes: string;
   checkStatus: RecipeCheckStatus;
   viewCount: number;
-  activityValue: number;
-  popularityValue: number;
-  comprehensiveScore: number;
-  verifyStatus: RecipeVerifyStatus;
+  activeVal: number;
+  popularVal: number;
+  totalScore: number;
   tags: string[];
-  createdAt: string;
+  createTime: string;
 }
 
 export interface RecipeDetail extends RecipeItem {
@@ -98,10 +97,10 @@ export interface RecipeListResult {
   success: boolean;
   code: number;
   data: {
-    list: RecipeItem[];
+    records: RecipeItem[];
     total: number;
-    pageNum: number;
-    pageSize: number;
+    current: number;
+    size: number;
   };
   message: string;
 }
@@ -110,10 +109,10 @@ export interface RecipeAppraiseListResult {
   success: boolean;
   code: number;
   data: {
-    list: RecipeAppraiseItem[];
+    records: RecipeAppraiseItem[];
     total: number;
-    pageNum: number;
-    pageSize: number;
+    current: number;
+    size: number;
   };
   message: string;
 }
@@ -151,8 +150,10 @@ export interface RecipeCreateResult {
   message: string;
 }
 
-export const getRecipeList = (params: RecipeListParams) => {
-  return http.request<RecipeListResult>("get", "/recipe/list", { params });
+export const getRecipeList = (data: RecipeListParams) => {
+  return http.request<RecipeListResult>("post", baseUrlApi("dish/page"), {
+    data
+  });
 };
 
 export const getRecipeAppraiseList = (params: RecipeAppraiseListParams) => {
@@ -188,13 +189,9 @@ export const getRecipeDetail = (id: number) => {
 };
 
 export const createRecipe = (data: CreateRecipePayload) => {
-  return http.request<RecipeCreateResult>(
-    "post",
-    baseUrlApi("/recipe/create"),
-    {
-      data
-    }
-  );
+  return http.request<RecipeCreateResult>("post", baseUrlApi("dish/save"), {
+    data
+  });
 };
 
 export const deleteRecipe = (id: number) => {

@@ -61,7 +61,7 @@ async function loadNutritionList() {
       keyword: searchForm.keyword.trim()
     };
     const result = await getSystemNutritionList(params);
-    nutritionList.value = result.data.list;
+    nutritionList.value = result.data.records;
     pagination.total = result.data.total;
   } finally {
     loading.value = false;
@@ -169,10 +169,19 @@ loadNutritionList();
         <el-table-column label="默认值" prop="defaultValue" min-width="140" />
         <el-table-column label="创建时间" prop="createdAt" min-width="180" />
         <el-table-column label="创建人" prop="creatorName" min-width="140" />
-        <el-table-column label="操作" fixed="right" min-width="160" align="center">
+        <el-table-column
+          label="操作"
+          fixed="right"
+          min-width="160"
+          align="center"
+        >
           <template #default="{ row }">
-            <el-button link type="primary" @click="openEditDialog(row)">编辑</el-button>
-            <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
+            <el-button link type="primary" @click="openEditDialog(row)"
+              >编辑</el-button
+            >
+            <el-button link type="danger" @click="handleDelete(row)"
+              >删除</el-button
+            >
           </template>
         </el-table-column>
         <template #empty>

@@ -56,7 +56,7 @@ async function loadUserLabelList() {
       keyword: searchForm.keyword.trim()
     };
     const result = await getUserLabelList(params);
-    labelList.value = result.data.list;
+    labelList.value = result.data.records;
     pagination.total = result.data.total;
   } finally {
     loading.value = false;

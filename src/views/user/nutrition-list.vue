@@ -47,7 +47,7 @@ async function loadNutritionList() {
       username: searchForm.username.trim()
     };
     const result = await getUserNutritionList(params);
-    nutritionList.value = result.data.list;
+    nutritionList.value = result.data.records;
     pagination.total = result.data.total;
   } finally {
     loading.value = false;

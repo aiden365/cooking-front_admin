@@ -53,7 +53,7 @@ async function loadDietList() {
       mealTime: searchForm.mealTime
     };
     const result = await getUserDietList(params);
-    dietList.value = result.data.list;
+    dietList.value = result.data.records;
     pagination.total = result.data.total;
   } finally {
     loading.value = false;

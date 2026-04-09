@@ -44,7 +44,7 @@ async function loadRepositoryList() {
       type: searchForm.type
     };
     const result = await getRepositoryList(params);
-    repositoryList.value = result.data.list;
+    repositoryList.value = result.data.records;
     pagination.total = result.data.total;
   } finally {
     loading.value = false;

@@ -50,7 +50,7 @@ async function loadAppraiseList() {
       keyword: searchForm.keyword.trim()
     };
     const result = await getRecipeAppraiseList(params);
-    appraiseList.value = result.data.list;
+    appraiseList.value = result.data.records;
     pagination.total = result.data.total;
   } finally {
     loading.value = false;
@@ -119,7 +119,12 @@ onMounted(() => {
           fontWeight: '600'
         }"
       >
-        <el-table-column label="菜名" prop="recipeName" min-width="220" show-overflow-tooltip />
+        <el-table-column
+          label="菜名"
+          prop="recipeName"
+          min-width="220"
+          show-overflow-tooltip
+        />
         <el-table-column label="操作性评分" min-width="160" align="center">
           <template #default="{ row }">
             <el-tag :type="getScoreTagType(row.operationScore)" effect="dark">
@@ -136,15 +141,22 @@ onMounted(() => {
         </el-table-column>
         <el-table-column label="满意度评分" min-width="160" align="center">
           <template #default="{ row }">
-            <el-tag :type="getScoreTagType(row.satisfactionScore)" effect="dark">
+            <el-tag
+              :type="getScoreTagType(row.satisfactionScore)"
+              effect="dark"
+            >
               {{ row.satisfactionScore.toFixed(1) }}
             </el-tag>
           </template>
         </el-table-column>
         <el-table-column label="操作" min-width="180" align="center">
           <template #default="{ row }">
-            <el-button link type="primary" @click="handleDetail(row)">详情</el-button>
-            <el-button link type="danger" @click="handleReset(row)">重置</el-button>
+            <el-button link type="primary" @click="handleDetail(row)"
+              >详情</el-button
+            >
+            <el-button link type="danger" @click="handleReset(row)"
+              >重置</el-button
+            >
           </template>
         </el-table-column>
         <template #empty>
@@ -183,7 +195,10 @@ onMounted(() => {
         </el-table-column>
         <el-table-column label="满意度评分" min-width="150" align="center">
           <template #default="{ row }">
-            <el-tag :type="getScoreTagType(row.satisfactionScore)" effect="plain">
+            <el-tag
+              :type="getScoreTagType(row.satisfactionScore)"
+              effect="plain"
+            >
               {{ row.satisfactionScore.toFixed(1) }}
             </el-tag>
           </template>

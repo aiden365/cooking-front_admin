@@ -7,7 +7,7 @@ import {
   getRecipeList,
   type RecipeItem,
   type RecipeListParams,
-  type RecipeVerifyStatus
+  type RecipeCheckStatus
 } from "@/api/recipe";
 
 defineOptions({
@@ -15,8 +15,8 @@ defineOptions({
 });
 
 interface SearchForm {
-  keyword: string;
-  verifyStatus: RecipeVerifyStatus | "";
+  search: string;
+  checkStatus: RecipeCheckStatus | "";
 }
 
 const router = useRouter();
@@ -27,35 +27,35 @@ const total = ref(0);
 const defaultPageSize = 7;
 
 const pagination = reactive({
-  pageNum: 1,
+  pageNo: 1,
   pageSize: defaultPageSize
 });
 
 const searchForm = reactive<SearchForm>({
-  keyword: "",
-  verifyStatus: ""
+  search: "",
+  checkStatus: ""
 });
 
 const statusOptions: Array<{
   label: string;
-  value: RecipeVerifyStatus | "";
+  value: RecipeCheckStatus | "";
 }> = [
   { label: "全部状态", value: "" },
-  { label: "已校验", value: 1 },
-  { label: "未校验", value: 2 }
+  { label: "未校验", value: 1 },
+  { label: "已校验", value: 2 }
 ];
 
 async function loadRecipeList() {
   loading.value = true;
   try {
     const params: RecipeListParams = {
-      pageNum: pagination.pageNum,
+      pageNo: pagination.pageNo,
       pageSize: pagination.pageSize,
-      keyword: searchForm.keyword.trim(),
-      verifyStatus: searchForm.verifyStatus
+      search: searchForm.search.trim(),
+      checkStatus: searchForm.checkStatus
     };
     const result = await getRecipeList(params);
-    recipeList.value = result.data.list;
+    recipeList.value = result.data.records;
     total.value = result.data.total;
   } finally {
     loading.value = false;
@@ -63,14 +63,14 @@ async function loadRecipeList() {
 }
 
 function handleSearch() {
-  pagination.pageNum = 1;
+  pagination.pageNo = 1;
   loadRecipeList();
 }
 
 function handleReset() {
-  searchForm.keyword = "";
-  searchForm.verifyStatus = "";
-  pagination.pageNum = 1;
+  searchForm.search = "";
+  searchForm.checkStatus = "";
+  pagination.pageNo = 1;
   pagination.pageSize = defaultPageSize;
   loadRecipeList();
 }
@@ -104,23 +104,23 @@ async function handleDelete(row: RecipeItem) {
   await deleteRecipe(row.id);
   ElMessage.success("删除成功");
   const currentPageHasSingleRow =
-    recipeList.value.length === 1 && pagination.pageNum > 1;
+    recipeList.value.length === 1 && pagination.pageNo > 1;
   if (currentPageHasSingleRow) {
-    pagination.pageNum -= 1;
+    pagination.pageNo -= 1;
   }
   loadRecipeList();
 }
 
-function formatStatus(status: RecipeVerifyStatus) {
+function formatStatus(status: RecipeCheckStatus) {
   return status === 2 ? "已校验" : "未校验";
 }
 
-function formatStatusTagType(status: RecipeVerifyStatus) {
+function formatStatusTagType(status: RecipeCheckStatus) {
   return status === 2 ? "success" : "warning";
 }
 
 function handleCurrentChange(page: number) {
-  pagination.pageNum = page;
+  pagination.pageNo = page;
   loadRecipeList();
 }
 
@@ -135,7 +135,7 @@ onMounted(() => {
       <el-form inline :model="searchForm" class="flex flex-wrap gap-y-2">
         <el-form-item label="菜谱名称" class="mb-0!">
           <el-input
-            v-model="searchForm.keyword"
+            v-model="searchForm.search"
             clearable
             placeholder="请输入菜谱名称"
             class="240px"
@@ -144,7 +144,7 @@ onMounted(() => {
         </el-form-item>
         <el-form-item label="校验状态" class="mb-0!">
           <el-select
-            v-model="searchForm.verifyStatus"
+            v-model="searchForm.checkStatus"
             placeholder="请选择校验状态"
             class="w-[180px]"
             style="width: 150px"
@@ -191,20 +191,20 @@ onMounted(() => {
                 {{ row.name }}
               </div>
               <div class="text-xs text-text_color_regular">
-                创建于 {{ row.createdAt }}
+                创建于 {{ row.createTime }}
               </div>
             </div>
           </template>
         </el-table-column>
         <el-table-column
           label="食材数量"
-          prop="ingredientCount"
+          prop="materialCount"
           min-width="80"
           align="center"
         />
         <el-table-column
           label="调料数量"
-          prop="seasoningCount"
+          prop="flavorCount"
           min-width="80"
           align="center"
         />
@@ -215,9 +215,7 @@ onMounted(() => {
           align="center"
         />
         <el-table-column label="预计用时" min-width="100" align="center">
-          <template #default="{ row }">
-            {{ row.durationMinutes }} 分钟
-          </template>
+          <template #default="{ row }"> {{ row.takeTimes }} </template>
         </el-table-column>
         <el-table-column
           label="浏览量"
@@ -227,29 +225,26 @@ onMounted(() => {
         />
         <el-table-column
           label="活跃值"
-          prop="activityValue"
+          prop="activeVal"
           min-width="70"
           align="center"
         />
         <el-table-column
           label="人气值"
-          prop="popularityValue"
+          prop="popularVal"
           min-width="70"
           align="center"
         />
         <el-table-column
           label="综合评分"
-          prop="comprehensiveScore"
+          prop="totalScore"
           min-width="80"
           align="center"
         />
         <el-table-column label="检查状态" min-width="120" align="center">
           <template #default="{ row }">
-            <el-tag
-              :type="formatStatusTagType(row.verifyStatus)"
-              effect="light"
-            >
-              {{ formatStatus(row.verifyStatus) }}
+            <el-tag :type="formatStatusTagType(row.checkStatus)" effect="light">
+              {{ formatStatus(row.checkStatus) }}
             </el-tag>
           </template>
         </el-table-column>
@@ -294,7 +289,7 @@ onMounted(() => {
 
       <div class="mt-4 flex justify-end overflow-x-auto">
         <el-pagination
-          v-model:current-page="pagination.pageNum"
+          v-model:current-page="pagination.pageNo"
           :page-size="pagination.pageSize"
           :total="total"
           layout="total, prev, pager, next, jumper"

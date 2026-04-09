@@ -46,7 +46,7 @@ async function loadShareList() {
       username: searchForm.username.trim()
     };
     const result = await getUserShareList(params);
-    shareList.value = result.data.list;
+    shareList.value = result.data.records;
     pagination.total = result.data.total;
   } finally {
     loading.value = false;
@@ -132,10 +132,19 @@ onMounted(() => {
           show-overflow-tooltip
         />
         <el-table-column label="分享图片" prop="imageName" min-width="180" />
-        <el-table-column label="操作" fixed="right" min-width="160" align="center">
+        <el-table-column
+          label="操作"
+          fixed="right"
+          min-width="160"
+          align="center"
+        >
           <template #default="{ row }">
-            <el-button link type="primary" @click="handleDetail(row)">详情</el-button>
-            <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
+            <el-button link type="primary" @click="handleDetail(row)"
+              >详情</el-button
+            >
+            <el-button link type="danger" @click="handleDelete(row)"
+              >删除</el-button
+            >
           </template>
         </el-table-column>
         <template #empty>
@@ -170,7 +179,9 @@ onMounted(() => {
         </el-form-item>
         <el-form-item label="分享图片预览">
           <div v-if="shareDetail" class="space-y-3">
-            <div class="text-sm text-text_color_regular">{{ shareDetail.imageName }}</div>
+            <div class="text-sm text-text_color_regular">
+              {{ shareDetail.imageName }}
+            </div>
             <el-image
               :src="shareDetail.imageUrl"
               fit="cover"

@@ -73,7 +73,7 @@ async function loadUserList() {
       keyword: searchForm.keyword.trim()
     };
     const result = await getUserList(params);
-    userList.value = result.data.list;
+    userList.value = result.data.records;
     pagination.total = result.data.total;
   } finally {
     loading.value = false;
@@ -175,8 +175,18 @@ loadUserList();
         <el-table-column label="账户" prop="account" min-width="150" />
         <el-table-column label="年龄" prop="age" width="90" align="center" />
         <el-table-column label="性别" prop="gender" width="90" align="center" />
-        <el-table-column label="身高(cm)" prop="height" width="110" align="center" />
-        <el-table-column label="体重(kg)" prop="weight" width="110" align="center" />
+        <el-table-column
+          label="身高(cm)"
+          prop="height"
+          width="110"
+          align="center"
+        />
+        <el-table-column
+          label="体重(kg)"
+          prop="weight"
+          width="110"
+          align="center"
+        />
         <el-table-column label="用户状态" min-width="120" align="center">
           <template #default="{ row }">
             <el-tag :type="getStatusTagType(row.status)">
@@ -185,11 +195,24 @@ loadUserList();
           </template>
         </el-table-column>
         <el-table-column label="注册时间" prop="registerTime" min-width="180" />
-        <el-table-column label="操作" fixed="right" min-width="220" align="center">
+        <el-table-column
+          label="操作"
+          fixed="right"
+          min-width="220"
+          align="center"
+        >
           <template #default="{ row }">
-            <el-button link type="primary" @click="handleEdit(row)">编辑</el-button>
-            <el-button link type="warning" @click="openPasswordDialog(row)">修改密码</el-button>
-            <el-button link :type="row.status === 1 ? 'danger' : 'success'" @click="toggleStatus(row)">
+            <el-button link type="primary" @click="handleEdit(row)"
+              >编辑</el-button
+            >
+            <el-button link type="warning" @click="openPasswordDialog(row)"
+              >修改密码</el-button
+            >
+            <el-button
+              link
+              :type="row.status === 1 ? 'danger' : 'success'"
+              @click="toggleStatus(row)"
+            >
               {{ row.status === 1 ? "禁用" : "启用" }}
             </el-button>
           </template>
@@ -211,7 +234,11 @@ loadUserList();
       </div>
     </el-card>
 
-    <el-dialog v-model="dialogVisible" :title="`修改密码 - ${selectedUserName}`" width="520px">
+    <el-dialog
+      v-model="dialogVisible"
+      :title="`修改密码 - ${selectedUserName}`"
+      width="520px"
+    >
       <el-form
         ref="passwordFormRef"
         :model="passwordForm"

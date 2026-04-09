@@ -35,10 +35,10 @@ export interface RepositoryListResult {
   success: boolean;
   code: number;
   data: {
-    list: RepositoryItem[];
+    records: RepositoryItem[];
     total: number;
-    pageNum: number;
-    pageSize: number;
+    current: number;
+    size: number;
   };
   message: string;
 }

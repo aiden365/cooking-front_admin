@@ -17,10 +17,10 @@ export interface DishLabelListResult {
   success: boolean;
   code: number;
   data: {
-    list: DishLabelItem[];
+    records: DishLabelItem[];
     total: number;
-    pageNum: number;
-    pageSize: number;
+    current: number;
+    size: number;
   };
   message: string;
 }

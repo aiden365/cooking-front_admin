@@ -76,11 +76,11 @@ function handleReset() {
 }
 
 function handleAdd() {
-  router.push("/dish/add");
+  router.push("/dish/save");
 }
 
 function handleEdit(row: RecipeItem) {
-  router.push(`/dish/edit/${row.id}`);
+  router.push(`/dish/save/${row.id}`);
 }
 
 function handleDetail(row: RecipeItem) {

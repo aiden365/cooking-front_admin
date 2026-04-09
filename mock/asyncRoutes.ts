@@ -19,9 +19,9 @@ const dishRouter = {
       }
     },
     {
-      path: "/dish/add",
+      path: "/dish/save",
       name: "DishAdd",
-      component: "dish/add",
+      component: "dish/save",
       meta: {
         title: "新增菜谱",
         showLink: false,
@@ -29,9 +29,9 @@ const dishRouter = {
       }
     },
     {
-      path: "/dish/edit/:id",
-      name: "DishEdit",
-      component: "dish/edit",
+      path: "/dish/save/:id",
+      name: "DishSave",
+      component: "dish/save",
       meta: {
         title: "编辑菜谱",
         showLink: false,

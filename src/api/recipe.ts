@@ -78,16 +78,19 @@ export interface RecipeAppraiseItem {
 }
 
 export interface CreateRecipePayload {
+  id: number;
   name: string;
-  durationMinutes: number;
+  takeTimes: string;
   checkStatus: RecipeCheckStatus;
   tips: string;
-  cover: string;
-  seasonings: Array<Pick<RecipeSeasoningItem, "name" | "dosage">>;
-  ingredients: Array<
-    Pick<RecipeIngredientItem, "name" | "dosage" | "preparation">
+  imgPath: string;
+  flavors: Array<Pick<RecipeSeasoningItem, "id" | "name" | "dosage">>;
+  materials: Array<
+    Pick<RecipeIngredientItem, "id" | "name" | "dosage" | "preparation">
   >;
-  steps: Array<Pick<RecipeStepItem, "order" | "description" | "sampleImage">>;
+  steps: Array<
+    Pick<RecipeStepItem, "id" | "order" | "description" | "sampleImage">
+  >;
 }
 
 export interface RecipeListResult {

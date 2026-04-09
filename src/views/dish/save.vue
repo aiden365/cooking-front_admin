@@ -17,25 +17,28 @@ import {
 } from "@/api/recipe";
 
 defineOptions({
-  name: "DishAdd"
+  name: "DishSave"
 });
 
 interface DishInfoForm {
+  id: number;
   name: string;
-  durationMinutes: string;
+  takeTimes: string;
   checkStatus: 1 | 2;
   tips: string;
-  cover: string;
+  imgPath: string;
 }
 
 interface SeasoningDialogForm {
   id: number | null;
+  editingIndex: number | null;
   name: string;
   dosage: string;
 }
 
 interface IngredientDialogForm {
   id: number | null;
+  editingIndex: number | null;
   name: string;
   dosage: string;
   preparation: string;
@@ -43,6 +46,7 @@ interface IngredientDialogForm {
 
 interface StepDialogForm {
   id: number | null;
+  editingIndex: number | null;
   order: number | null;
   description: string;
   sampleImage: string;
@@ -63,16 +67,17 @@ const stepTitles = ["菜品信息", "调料信息", "食材信息", "制作步�
 const fixedPageSize = 5;
 
 const dishInfoForm = reactive<DishInfoForm>({
+  id: null,
   name: "",
-  durationMinutes: "",
+  takeTimes: "",
   checkStatus: 1,
   tips: "",
-  cover: ""
+  imgPath: ""
 });
 
 const dishInfoRules: FormRules<DishInfoForm> = {
   name: [{ required: true, message: "请输入菜品名称", trigger: "blur" }],
-  durationMinutes: [
+  takeTimes: [
     { required: true, message: "请输入预计用时", trigger: "blur" },
     {
       validator: (_rule, value: string, callback) => {
@@ -114,17 +119,20 @@ const recipeStepDialogVisible = ref(false);
 
 const seasoningDialogForm = reactive<SeasoningDialogForm>({
   id: null,
+  editingIndex: null,
   name: "",
   dosage: ""
 });
 const ingredientDialogForm = reactive<IngredientDialogForm>({
   id: null,
+  editingIndex: null,
   name: "",
   dosage: "",
   preparation: ""
 });
 const recipeStepDialogForm = reactive<StepDialogForm>({
   id: null,
+  editingIndex: null,
   order: null,
   description: "",
   sampleImage: ""
@@ -206,28 +214,30 @@ const pagedRecipeSteps = computed(() => {
 });
 
 const seasoningDialogTitle = computed(() =>
-  seasoningDialogForm.id ? "编辑调料" : "添加调料"
+  seasoningDialogForm.editingIndex !== null ? "编辑调料" : "添加调料"
 );
 const ingredientDialogTitle = computed(() =>
-  ingredientDialogForm.id ? "编辑食材" : "添加食材"
+  ingredientDialogForm.editingIndex !== null ? "编辑食材" : "添加食材"
 );
 const recipeStepDialogTitle = computed(() =>
-  recipeStepDialogForm.id ? "编辑制作步骤" : "添加制作步骤"
+  recipeStepDialogForm.editingIndex !== null ? "编辑制作步骤" : "添加制作步骤"
 );
 
 const onCoverChange: UploadProps["onChange"] = (uploadFile: UploadFile) => {
   if (!uploadFile.raw) return;
-  dishInfoForm.cover = URL.createObjectURL(uploadFile.raw);
+  dishInfoForm.imgPath = URL.createObjectURL(uploadFile.raw);
 };
 
 function resetSeasoningDialogForm() {
   seasoningDialogForm.id = null;
+  seasoningDialogForm.editingIndex = null;
   seasoningDialogForm.name = "";
   seasoningDialogForm.dosage = "";
 }
 
 function resetIngredientDialogForm() {
   ingredientDialogForm.id = null;
+  ingredientDialogForm.editingIndex = null;
   ingredientDialogForm.name = "";
   ingredientDialogForm.dosage = "";
   ingredientDialogForm.preparation = "";
@@ -235,6 +245,7 @@ function resetIngredientDialogForm() {
 
 function resetRecipeStepDialogForm() {
   recipeStepDialogForm.id = null;
+  recipeStepDialogForm.editingIndex = null;
   recipeStepDialogForm.order = null;
   recipeStepDialogForm.description = "";
   recipeStepDialogForm.sampleImage = "";
@@ -249,6 +260,8 @@ function resetPageWhenNeeded<T>(list: T[], state: PagedSectionState) {
 
 function openSeasoningDialog(item?: RecipeSeasoningItem) {
   if (item) {
+    const editingIndex = seasonings.value.indexOf(item);
+    seasoningDialogForm.editingIndex = editingIndex > -1 ? editingIndex : null;
     seasoningDialogForm.id = item.id;
     seasoningDialogForm.name = item.name;
     seasoningDialogForm.dosage = item.dosage;
@@ -260,6 +273,8 @@ function openSeasoningDialog(item?: RecipeSeasoningItem) {
 
 function openIngredientDialog(item?: RecipeIngredientItem) {
   if (item) {
+    const editingIndex = ingredients.value.indexOf(item);
+    ingredientDialogForm.editingIndex = editingIndex > -1 ? editingIndex : null;
     ingredientDialogForm.id = item.id;
     ingredientDialogForm.name = item.name;
     ingredientDialogForm.dosage = item.dosage;
@@ -272,6 +287,8 @@ function openIngredientDialog(item?: RecipeIngredientItem) {
 
 function openRecipeStepDialog(item?: RecipeStepItem) {
   if (item) {
+    const editingIndex = recipeSteps.value.indexOf(item);
+    recipeStepDialogForm.editingIndex = editingIndex > -1 ? editingIndex : null;
     recipeStepDialogForm.id = item.id;
     recipeStepDialogForm.order = item.order;
     recipeStepDialogForm.description = item.description;
@@ -286,10 +303,8 @@ async function saveSeasoning() {
   const valid = await seasoningDialogRef.value?.validate().catch(() => false);
   if (!valid) return;
 
-  if (seasoningDialogForm.id) {
-    const target = seasonings.value.find(
-      item => item.id === seasoningDialogForm.id
-    );
+  if (seasoningDialogForm.editingIndex !== null) {
+    const target = seasonings.value[seasoningDialogForm.editingIndex];
     if (target) {
       target.name = seasoningDialogForm.name;
       target.dosage = seasoningDialogForm.dosage;
@@ -311,10 +326,8 @@ async function saveIngredient() {
   const valid = await ingredientDialogRef.value?.validate().catch(() => false);
   if (!valid) return;
 
-  if (ingredientDialogForm.id) {
-    const target = ingredients.value.find(
-      item => item.id === ingredientDialogForm.id
-    );
+  if (ingredientDialogForm.editingIndex !== null) {
+    const target = ingredients.value[ingredientDialogForm.editingIndex];
     if (target) {
       target.name = ingredientDialogForm.name;
       target.dosage = ingredientDialogForm.dosage;
@@ -338,10 +351,8 @@ async function saveRecipeStep() {
   const valid = await recipeStepDialogRef.value?.validate().catch(() => false);
   if (!valid) return;
 
-  if (recipeStepDialogForm.id) {
-    const target = recipeSteps.value.find(
-      item => item.id === recipeStepDialogForm.id
-    );
+  if (recipeStepDialogForm.editingIndex !== null) {
+    const target = recipeSteps.value[recipeStepDialogForm.editingIndex];
     if (target) {
       target.order = Number(recipeStepDialogForm.order);
       target.description = recipeStepDialogForm.description;
@@ -362,20 +373,26 @@ async function saveRecipeStep() {
   ElMessage.success("制作步骤已保存");
 }
 
-function deleteSeasoning(id: number) {
-  seasonings.value = seasonings.value.filter(item => item.id !== id);
+function deleteSeasoning(item: RecipeSeasoningItem) {
+  const targetIndex = seasonings.value.indexOf(item);
+  if (targetIndex === -1) return;
+  seasonings.value.splice(targetIndex, 1);
   resetPageWhenNeeded(filteredSeasonings.value, seasoningState);
   ElMessage.success("调料已删除");
 }
 
-function deleteIngredient(id: number) {
-  ingredients.value = ingredients.value.filter(item => item.id !== id);
+function deleteIngredient(item: RecipeIngredientItem) {
+  const targetIndex = ingredients.value.indexOf(item);
+  if (targetIndex === -1) return;
+  ingredients.value.splice(targetIndex, 1);
   resetPageWhenNeeded(filteredIngredients.value, ingredientState);
   ElMessage.success("食材已删除");
 }
 
-function deleteRecipeStep(id: number) {
-  recipeSteps.value = recipeSteps.value.filter(item => item.id !== id);
+function deleteRecipeStep(item: RecipeStepItem) {
+  const targetIndex = recipeSteps.value.indexOf(item);
+  if (targetIndex === -1) return;
+  recipeSteps.value.splice(targetIndex, 1);
   resetPageWhenNeeded(filteredRecipeSteps.value, recipeStepState);
   ElMessage.success("制作步骤已删除");
 }
@@ -394,21 +411,25 @@ function goPrevious() {
 
 async function submitRecipe() {
   const payload: CreateRecipePayload = {
+    id: dishInfoForm.id,
     name: dishInfoForm.name,
-    durationMinutes: Number(dishInfoForm.durationMinutes),
+    takeTimes: dishInfoForm.takeTimes,
     checkStatus: dishInfoForm.checkStatus,
     tips: dishInfoForm.tips,
-    cover: dishInfoForm.cover,
-    seasonings: seasonings.value.map(item => ({
+    imgPath: dishInfoForm.imgPath,
+    flavors: seasonings.value.map(item => ({
+      id: item.id,
       name: item.name,
       dosage: item.dosage
     })),
-    ingredients: ingredients.value.map(item => ({
+    materials: ingredients.value.map(item => ({
+      id: item.id,
       name: item.name,
       dosage: item.dosage,
       preparation: item.preparation
     })),
     steps: recipeSteps.value.map(item => ({
+      id: item.id,
       order: item.order,
       description: item.description,
       sampleImage: item.sampleImage
@@ -457,17 +478,17 @@ async function goNext() {
       <el-form
         v-if="activeStep === 0"
         ref="dishInfoFormRef"
-        :model="dishInfoForm"
         :rules="dishInfoRules"
+        :model="dishInfoForm"
         label-position="top"
         class="mx-auto max-w-[760px] pt-8"
       >
         <el-form-item label="菜品名称" prop="name" required>
           <el-input v-model="dishInfoForm.name" placeholder="请输入菜品名称" />
         </el-form-item>
-        <el-form-item label="预计用时" prop="durationMinutes" required>
+        <el-form-item label="预计用时" prop="takeTimes" required>
           <el-input
-            v-model="dishInfoForm.durationMinutes"
+            v-model="dishInfoForm.takeTimes"
             placeholder="请输入预计用时（分钟）"
           />
         </el-form-item>
@@ -489,7 +510,7 @@ async function goNext() {
             placeholder="请输入小贴士"
           />
         </el-form-item>
-        <el-form-item label="菜品图片" prop="cover">
+        <el-form-item label="菜品图片" prop="imgPath">
           <el-upload
             class="w-full"
             drag
@@ -508,9 +529,9 @@ async function goNext() {
               </div>
             </div>
           </el-upload>
-          <div v-if="dishInfoForm.cover" class="mt-4">
+          <div v-if="dishInfoForm.imgPath" class="mt-4">
             <img
-              :src="dishInfoForm.cover"
+              :src="dishInfoForm.imgPath"
               alt="菜品图片预览"
               class="h-40 w-40 rounded-lg object-cover border border-solid border-[#dcdfe6]"
             />
@@ -539,7 +560,7 @@ async function goNext() {
               <el-button link type="primary" @click="openSeasoningDialog(row)"
                 >编辑</el-button
               >
-              <el-button link type="danger" @click="deleteSeasoning(row.id)"
+              <el-button link type="danger" @click="deleteSeasoning(row)"
                 >删除</el-button
               >
             </template>
@@ -586,7 +607,7 @@ async function goNext() {
               <el-button link type="primary" @click="openIngredientDialog(row)"
                 >编辑</el-button
               >
-              <el-button link type="danger" @click="deleteIngredient(row.id)"
+              <el-button link type="danger" @click="deleteIngredient(row)"
                 >删除</el-button
               >
             </template>
@@ -643,7 +664,7 @@ async function goNext() {
               <el-button link type="primary" @click="openRecipeStepDialog(row)"
                 >编辑</el-button
               >
-              <el-button link type="danger" @click="deleteRecipeStep(row.id)"
+              <el-button link type="danger" @click="deleteRecipeStep(row)"
                 >删除</el-button
               >
             </template>

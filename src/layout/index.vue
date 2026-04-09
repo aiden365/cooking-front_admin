@@ -185,12 +185,6 @@ const LayHeader = defineComponent({
         <LayContent :fixed-header="set.fixedHeader" />
       </div>
       <el-scrollbar v-else>
-        <el-backtop
-          title="回到顶部"
-          target=".main-container .el-scrollbar__wrap"
-        >
-          <BackTopIcon />
-        </el-backtop>
         <LayHeader />
         <!-- 主体内容 -->
         <LayContent :fixed-header="set.fixedHeader" />

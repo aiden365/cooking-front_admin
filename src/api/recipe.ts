@@ -32,7 +32,7 @@ export interface RecipeIngredientItem {
 
 export interface RecipeStepItem {
   id: number;
-  order: number;
+  sort: number;
   stepDescribe: string;
   stepImage: string;
 }
@@ -50,15 +50,16 @@ export interface RecipeItem {
   activeVal: number;
   popularVal: number;
   totalScore: number;
-  tags: string[];
+  labelNames: string[];
   createTime: string;
+  imgPath: string;
 }
 
 export interface RecipeDetail extends RecipeItem {
   tips: string;
-  seasonings: RecipeSeasoningItem[];
-  ingredients: RecipeIngredientItem[];
-  steps: RecipeStepItem[];
+  flavorList: RecipeSeasoningItem[];
+  materialList: RecipeIngredientItem[];
+  stepList: RecipeStepItem[];
 }
 
 export interface RecipeAppraiseUserItem {
@@ -89,7 +90,7 @@ export interface CreateRecipePayload {
     Pick<RecipeIngredientItem, "id" | "materialName" | "dosage" | "deal">
   >;
   steps: Array<
-    Pick<RecipeStepItem, "id" | "order" | "stepDescribe" | "stepImage">
+    Pick<RecipeStepItem, "id" | "sort" | "stepDescribe" | "stepImage">
   >;
 }
 
@@ -182,9 +183,9 @@ export const resetRecipeAppraise = (recipeId: number) => {
   });
 };
 
-export const getRecipeDetail = (id: number) => {
-  return http.request<RecipeDetailResult>("get", "/recipe/detail", {
-    params: { id }
+export const getRecipeDetail = (dishId: number) => {
+  return http.request<RecipeDetailResult>("post", baseUrlApi("dish/detail"), {
+    data: { dishId }
   });
 };
 
@@ -195,7 +196,7 @@ export const createRecipe = (data: CreateRecipePayload) => {
 };
 
 export const deleteRecipe = (id: number) => {
-  return http.request<RecipeDeleteResult>("post", "/recipe/delete", {
-    data: { id }
+  return http.request<RecipeDeleteResult>("post", baseUrlApi("dish/delete"), {
+    data: { ids: [id] }
   });
 };

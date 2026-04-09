@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, reactive, ref } from "vue";
-import { useRouter } from "vue-router";
+import { computed, onMounted, reactive, ref } from "vue";
+import { useRouter, useRoute } from "vue-router";
 import {
   ElMessage,
   type FormInstance,
@@ -10,10 +10,12 @@ import {
 } from "element-plus";
 import {
   createRecipe,
+  getRecipeDetail,
   type CreateRecipePayload,
   type RecipeIngredientItem,
   type RecipeSeasoningItem,
-  type RecipeStepItem
+  type RecipeStepItem,
+  type RecipeDetail
 } from "@/api/recipe";
 
 defineOptions({
@@ -47,7 +49,7 @@ interface IngredientDialogForm {
 interface StepDialogForm {
   id: number | null;
   editingIndex: number | null;
-  order: number | null;
+  sort: number | null;
   stepDescribe: string;
   stepImage: string;
 }
@@ -57,8 +59,9 @@ interface PagedSectionState {
   pageNum: number;
   pageSize: number;
 }
-
+const route = useRoute();
 const router = useRouter();
+const dishId = computed(() => Number(route.params.id));
 const activeStep = ref(0);
 const submitting = ref(false);
 const dishInfoFormRef = ref<FormInstance>();
@@ -77,20 +80,7 @@ const dishInfoForm = reactive<DishInfoForm>({
 
 const dishInfoRules: FormRules<DishInfoForm> = {
   name: [{ required: true, message: "请输入菜品名称", trigger: "blur" }],
-  takeTimes: [
-    { required: true, message: "请输入预计用时", trigger: "blur" },
-    {
-      validator: (_rule, value: string, callback) => {
-        const minutes = Number(value);
-        if (!Number.isFinite(minutes) || minutes <= 0) {
-          callback(new Error("预计用时需为大于 0 的数字"));
-          return;
-        }
-        callback();
-      },
-      trigger: "blur"
-    }
-  ]
+  takeTimes: [{ required: true, message: "请输入预计用时", trigger: "blur" }]
 };
 
 const seasoningState = reactive<PagedSectionState>({
@@ -132,13 +122,13 @@ const ingredients = ref<RecipeIngredientItem[]>([
 const recipeSteps = ref<RecipeStepItem[]>([
   {
     id: null,
-    order: 1,
+    sort: 1,
     stepDescribe: "这是测试菜谱的制作步骤1",
     stepImage: "图片相对地址"
   },
   {
     id: null,
-    order: 2,
+    sort: 2,
     stepDescribe: "这是测试菜谱的制作步骤2",
     stepImage: "图片相对地址"
   }
@@ -164,7 +154,7 @@ const ingredientDialogForm = reactive<IngredientDialogForm>({
 const recipeStepDialogForm = reactive<StepDialogForm>({
   id: null,
   editingIndex: null,
-  order: null,
+  sort: null,
   stepDescribe: "",
   stepImage: ""
 });
@@ -185,7 +175,7 @@ const ingredientDialogRules: FormRules<IngredientDialogForm> = {
 };
 
 const recipeStepDialogRules: FormRules<StepDialogForm> = {
-  order: [
+  sort: [
     { required: true, message: "请输入步骤序号", trigger: "blur" },
     {
       validator: (_rule, value: number | null, callback) => {
@@ -220,7 +210,7 @@ const filteredRecipeSteps = computed(() => {
     ? recipeSteps.value.filter(
         item =>
           item.stepDescribe.includes(keyword) ||
-          String(item.order).includes(keyword)
+          String(item.sort).includes(keyword)
       )
     : recipeSteps.value;
 });
@@ -277,7 +267,7 @@ function resetIngredientDialogForm() {
 function resetRecipeStepDialogForm() {
   recipeStepDialogForm.id = null;
   recipeStepDialogForm.editingIndex = null;
-  recipeStepDialogForm.order = null;
+  recipeStepDialogForm.sort = null;
   recipeStepDialogForm.stepDescribe = "";
   recipeStepDialogForm.stepImage = "";
 }
@@ -321,7 +311,7 @@ function openRecipeStepDialog(item?: RecipeStepItem) {
     const editingIndex = recipeSteps.value.indexOf(item);
     recipeStepDialogForm.editingIndex = editingIndex > -1 ? editingIndex : null;
     recipeStepDialogForm.id = item.id;
-    recipeStepDialogForm.order = item.order;
+    recipeStepDialogForm.sort = item.sort;
     recipeStepDialogForm.stepDescribe = item.stepDescribe;
     recipeStepDialogForm.stepImage = item.stepImage;
   } else {
@@ -342,7 +332,7 @@ async function saveSeasoning() {
     }
   } else {
     seasonings.value.unshift({
-      id: Date.now(),
+      id: null,
       flavorName: seasoningDialogForm.flavorName,
       dosage: seasoningDialogForm.dosage
     });
@@ -366,7 +356,7 @@ async function saveIngredient() {
     }
   } else {
     ingredients.value.unshift({
-      id: Date.now(),
+      id: null,
       materialName: ingredientDialogForm.materialName,
       dosage: ingredientDialogForm.dosage,
       deal: ingredientDialogForm.deal
@@ -385,20 +375,20 @@ async function saveRecipeStep() {
   if (recipeStepDialogForm.editingIndex !== null) {
     const target = recipeSteps.value[recipeStepDialogForm.editingIndex];
     if (target) {
-      target.order = Number(recipeStepDialogForm.order);
+      target.sort = Number(recipeStepDialogForm.sort);
       target.stepDescribe = recipeStepDialogForm.stepDescribe;
       target.stepImage = recipeStepDialogForm.stepImage;
     }
   } else {
     recipeSteps.value.unshift({
-      id: Date.now(),
-      order: Number(recipeStepDialogForm.order),
+      id: null,
+      sort: Number(recipeStepDialogForm.sort),
       stepDescribe: recipeStepDialogForm.stepDescribe,
       stepImage: recipeStepDialogForm.stepImage
     });
   }
 
-  recipeSteps.value.sort((a, b) => a.order - b.order);
+  recipeSteps.value.sort((a, b) => a.sort - b.sort);
   recipeStepDialogVisible.value = false;
   resetRecipeStepDialogForm();
   ElMessage.success("制作步骤已保存");
@@ -461,7 +451,7 @@ async function submitRecipe() {
     })),
     steps: recipeSteps.value.map(item => ({
       id: item.id,
-      order: item.order,
+      sort: item.sort,
       stepDescribe: item.stepDescribe,
       stepImage: item.stepImage
     }))
@@ -495,6 +485,28 @@ async function goNext() {
 
   router.push("/dish/list");
 }
+
+async function loadRecipeDetail() {
+  try {
+    if (dishId.value) {
+      const result = await getRecipeDetail(dishId.value);
+      dishInfoForm.id = result.data.id;
+      dishInfoForm.name = result.data.name;
+      dishInfoForm.takeTimes = result.data.takeTimes;
+      dishInfoForm.checkStatus = result.data.checkStatus;
+      dishInfoForm.tips = result.data.tips;
+      dishInfoForm.imgPath = result.data.imgPath;
+      seasonings.value = result.data.flavorList;
+      ingredients.value = result.data.materialList;
+      recipeSteps.value = result.data.stepList;
+    }
+  } finally {
+  }
+}
+
+onMounted(() => {
+  loadRecipeDetail();
+});
 </script>
 
 <template>
@@ -564,7 +576,7 @@ async function goNext() {
             <img
               :src="dishInfoForm.imgPath"
               alt="菜品图片预览"
-              class="h-40 w-40 rounded-lg object-cover border border-solid border-[#dcdfe6]"
+              class="h-40 w-40 rounded-lg object-cover bsort bsort-solid bsort-[#dcdfe6]"
             />
           </div>
         </el-form-item>
@@ -583,7 +595,7 @@ async function goNext() {
             >添加调料</el-button
           >
         </div>
-        <el-table :data="pagedSeasonings" border>
+        <el-table :data="pagedSeasonings" bsort>
           <el-table-column label="调料名" prop="flavorName" min-width="220" />
           <el-table-column label="用量" prop="dosage" min-width="180" />
           <el-table-column label="操作" width="180" align="center">
@@ -624,7 +636,7 @@ async function goNext() {
             >添加食材</el-button
           >
         </div>
-        <el-table :data="pagedIngredients" border>
+        <el-table :data="pagedIngredients" bsort>
           <el-table-column label="食材名" prop="materialName" min-width="180" />
           <el-table-column label="用量" prop="dosage" min-width="160" />
           <el-table-column
@@ -671,10 +683,10 @@ async function goNext() {
             >添加制作步骤</el-button
           >
         </div>
-        <el-table :data="pagedRecipeSteps" border>
+        <el-table :data="pagedRecipeSteps" bsort>
           <el-table-column
             label="第几步"
-            prop="order"
+            prop="sort"
             width="120"
             align="center"
           />
@@ -818,20 +830,20 @@ async function goNext() {
         :rules="recipeStepDialogRules"
         label-position="top"
       >
-        <el-form-item label="步骤序号" prop="order">
-          <el-input-number
-            v-model="recipeStepDialogForm.order"
-            :min="1"
-            controls-position="right"
-            class="w-full"
-          />
-        </el-form-item>
         <el-form-item label="描述" prop="stepDescribe">
           <el-input
             v-model="recipeStepDialogForm.stepDescribe"
             type="textarea"
             :rows="4"
             placeholder="请输入步骤描述"
+          />
+        </el-form-item>
+        <el-form-item label="步骤序号" prop="sort">
+          <el-input-number
+            v-model="recipeStepDialogForm.sort"
+            :min="1"
+            controls-position="right"
+            class="w-full"
           />
         </el-form-item>
         <el-form-item label="示例图片" prop="stepImage">

@@ -47,37 +47,37 @@ onMounted(() => {
           {{ recipe.name }}
         </el-descriptions-item>
         <el-descriptions-item label="创建日期">
-          {{ recipe.createdAt }}
+          {{ recipe.createTime }}
         </el-descriptions-item>
         <el-descriptions-item label="食材数量">
-          {{ recipe.ingredientCount }}
+          {{ recipe.materialCount }}
         </el-descriptions-item>
         <el-descriptions-item label="调料数量">
-          {{ recipe.seasoningCount }}
+          {{ recipe.flavorCount }}
         </el-descriptions-item>
         <el-descriptions-item label="步骤数量">
           {{ recipe.stepCount }}
         </el-descriptions-item>
         <el-descriptions-item label="预计用时">
-          {{ recipe.durationMinutes }} 分钟
+          {{ recipe.takeTimes }} 分钟
         </el-descriptions-item>
         <el-descriptions-item label="浏览量">
           {{ recipe.viewCount }}
         </el-descriptions-item>
         <el-descriptions-item label="活跃值">
-          {{ recipe.activityValue }}
+          {{ recipe.activeVal }}
         </el-descriptions-item>
         <el-descriptions-item label="人气值">
-          {{ recipe.popularityValue }}
+          {{ recipe.popularVal }}
         </el-descriptions-item>
         <el-descriptions-item label="校验状态">
-          <el-tag :type="recipe.verifyStatus === 2 ? 'success' : 'warning'">
-            {{ recipe.verifyStatus === 2 ? "已校验" : "未校验" }}
+          <el-tag :type="recipe.checkStatus === 2 ? 'success' : 'warning'">
+            {{ recipe.checkStatus === 2 ? "已校验" : "未校验" }}
           </el-tag>
         </el-descriptions-item>
         <el-descriptions-item label="标签" :span="2">
           <div class="flex flex-wrap gap-2">
-            <el-tag v-for="tag in recipe.tags" :key="tag" effect="plain">
+            <el-tag v-for="tag in recipe.labelNames" :key="tag" effect="plain">
               {{ tag }}
             </el-tag>
           </div>
@@ -89,8 +89,8 @@ onMounted(() => {
       <template #header>
         <div class="text-base font-semibold">调料信息</div>
       </template>
-      <el-table :data="recipe.seasonings" border>
-        <el-table-column label="调料名" prop="name" min-width="220" />
+      <el-table :data="recipe.flavorList" border>
+        <el-table-column label="调料名" prop="flavorName" min-width="220" />
         <el-table-column label="用量" prop="dosage" min-width="180" />
       </el-table>
     </el-card>
@@ -99,12 +99,12 @@ onMounted(() => {
       <template #header>
         <div class="text-base font-semibold">食材信息</div>
       </template>
-      <el-table :data="recipe.ingredients" border>
-        <el-table-column label="食材名" prop="name" min-width="180" />
+      <el-table :data="recipe.materialList" border>
+        <el-table-column label="食材名" prop="materialName" min-width="180" />
         <el-table-column label="用量" prop="dosage" min-width="160" />
         <el-table-column
           label="处理方式"
-          prop="preparation"
+          prop="deal"
           min-width="320"
           show-overflow-tooltip
         />
@@ -115,23 +115,23 @@ onMounted(() => {
       <template #header>
         <div class="text-base font-semibold">制作步骤</div>
       </template>
-      <el-table :data="recipe.steps" border>
+      <el-table :data="recipe.stepList" border>
         <el-table-column
           label="第几步"
-          prop="order"
+          prop="sort"
           width="100"
           align="center"
         />
         <el-table-column
           label="描述"
-          prop="description"
+          prop="stepDescribe"
           min-width="420"
           show-overflow-tooltip
         />
         <el-table-column label="示例图" min-width="180" align="center">
           <template #default="{ row }">
             <el-image
-              :src="row.sampleImage"
+              :src="row.ima"
               fit="cover"
               class="h-[72px] w-[108px] rounded-md cursor-pointer"
               :preview-src-list="[]"

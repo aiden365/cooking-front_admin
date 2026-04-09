@@ -1,4 +1,5 @@
 import { http } from "@/utils/http";
+import { baseUrlApi } from "./utils";
 
 export type RecipeVerifyStatus = 1 | 2;
 export type RecipeCheckStatus = 1 | 2;
@@ -18,22 +19,22 @@ export interface RecipeAppraiseListParams {
 
 export interface RecipeSeasoningItem {
   id: number;
-  name: string;
+  flavorName: string;
   dosage: string;
 }
 
 export interface RecipeIngredientItem {
   id: number;
-  name: string;
+  materialName: string;
   dosage: string;
-  preparation: string;
+  deal: string;
 }
 
 export interface RecipeStepItem {
   id: number;
   order: number;
-  description: string;
-  sampleImage: string;
+  stepDescribe: string;
+  stepImage: string;
 }
 
 export interface RecipeItem {
@@ -84,12 +85,12 @@ export interface CreateRecipePayload {
   checkStatus: RecipeCheckStatus;
   tips: string;
   imgPath: string;
-  flavors: Array<Pick<RecipeSeasoningItem, "id" | "name" | "dosage">>;
+  flavors: Array<Pick<RecipeSeasoningItem, "id" | "flavorName" | "dosage">>;
   materials: Array<
-    Pick<RecipeIngredientItem, "id" | "name" | "dosage" | "preparation">
+    Pick<RecipeIngredientItem, "id" | "materialName" | "dosage" | "deal">
   >;
   steps: Array<
-    Pick<RecipeStepItem, "id" | "order" | "description" | "sampleImage">
+    Pick<RecipeStepItem, "id" | "order" | "stepDescribe" | "stepImage">
   >;
 }
 
@@ -187,9 +188,13 @@ export const getRecipeDetail = (id: number) => {
 };
 
 export const createRecipe = (data: CreateRecipePayload) => {
-  return http.request<RecipeCreateResult>("post", "/recipe/create", {
-    data
-  });
+  return http.request<RecipeCreateResult>(
+    "post",
+    baseUrlApi("/recipe/create"),
+    {
+      data
+    }
+  );
 };
 
 export const deleteRecipe = (id: number) => {

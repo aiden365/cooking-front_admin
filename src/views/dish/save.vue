@@ -32,24 +32,24 @@ interface DishInfoForm {
 interface SeasoningDialogForm {
   id: number | null;
   editingIndex: number | null;
-  name: string;
+  flavorName: string;
   dosage: string;
 }
 
 interface IngredientDialogForm {
   id: number | null;
   editingIndex: number | null;
-  name: string;
+  materialName: string;
   dosage: string;
-  preparation: string;
+  deal: string;
 }
 
 interface StepDialogForm {
   id: number | null;
   editingIndex: number | null;
   order: number | null;
-  description: string;
-  sampleImage: string;
+  stepDescribe: string;
+  stepImage: string;
 }
 
 interface PagedSectionState {
@@ -68,10 +68,10 @@ const fixedPageSize = 5;
 
 const dishInfoForm = reactive<DishInfoForm>({
   id: null,
-  name: "",
-  takeTimes: "",
+  name: "菜名",
+  takeTimes: "15",
   checkStatus: 1,
-  tips: "",
+  tips: "这是一个测试菜谱",
   imgPath: ""
 });
 
@@ -109,9 +109,40 @@ const recipeStepState = reactive<PagedSectionState>({
   pageSize: fixedPageSize
 });
 
-const seasonings = ref<RecipeSeasoningItem[]>([]);
-const ingredients = ref<RecipeIngredientItem[]>([]);
-const recipeSteps = ref<RecipeStepItem[]>([]);
+const seasonings = ref<RecipeSeasoningItem[]>([
+  {
+    id: null,
+    flavorName: "盐",
+    dosage: "5g"
+  },
+  {
+    id: null,
+    flavorName: "食用油",
+    dosage: "5ml"
+  }
+]);
+const ingredients = ref<RecipeIngredientItem[]>([
+  {
+    id: null,
+    materialName: "食材1",
+    dosage: "1个",
+    deal: "食材1处理方式"
+  }
+]);
+const recipeSteps = ref<RecipeStepItem[]>([
+  {
+    id: null,
+    order: 1,
+    stepDescribe: "这是测试菜谱的制作步骤1",
+    stepImage: "图片相对地址"
+  },
+  {
+    id: null,
+    order: 2,
+    stepDescribe: "这是测试菜谱的制作步骤2",
+    stepImage: "图片相对地址"
+  }
+]);
 
 const seasoningDialogVisible = ref(false);
 const ingredientDialogVisible = ref(false);
@@ -120,22 +151,22 @@ const recipeStepDialogVisible = ref(false);
 const seasoningDialogForm = reactive<SeasoningDialogForm>({
   id: null,
   editingIndex: null,
-  name: "",
+  flavorName: "",
   dosage: ""
 });
 const ingredientDialogForm = reactive<IngredientDialogForm>({
   id: null,
   editingIndex: null,
-  name: "",
+  materialName: "",
   dosage: "",
-  preparation: ""
+  deal: ""
 });
 const recipeStepDialogForm = reactive<StepDialogForm>({
   id: null,
   editingIndex: null,
   order: null,
-  description: "",
-  sampleImage: ""
+  stepDescribe: "",
+  stepImage: ""
 });
 
 const seasoningDialogRef = ref<FormInstance>();
@@ -143,14 +174,14 @@ const ingredientDialogRef = ref<FormInstance>();
 const recipeStepDialogRef = ref<FormInstance>();
 
 const seasoningDialogRules: FormRules<SeasoningDialogForm> = {
-  name: [{ required: true, message: "请输入调料名", trigger: "blur" }],
+  flavorName: [{ required: true, message: "请输入调料名", trigger: "blur" }],
   dosage: [{ required: true, message: "请输入用量", trigger: "blur" }]
 };
 
 const ingredientDialogRules: FormRules<IngredientDialogForm> = {
-  name: [{ required: true, message: "请输入食材名", trigger: "blur" }],
+  materialName: [{ required: true, message: "请输入食材名", trigger: "blur" }],
   dosage: [{ required: true, message: "请输入用量", trigger: "blur" }],
-  preparation: [{ required: true, message: "请输入处理方式", trigger: "blur" }]
+  deal: [{ required: true, message: "请输入处理方式", trigger: "blur" }]
 };
 
 const recipeStepDialogRules: FormRules<StepDialogForm> = {
@@ -167,20 +198,20 @@ const recipeStepDialogRules: FormRules<StepDialogForm> = {
       trigger: "blur"
     }
   ],
-  description: [{ required: true, message: "请输入描述", trigger: "blur" }],
-  sampleImage: [{ required: true, message: "请输入示例图片", trigger: "blur" }]
+  stepDescribe: [{ required: true, message: "请输入描述", trigger: "blur" }],
+  stepImage: [{ required: true, message: "请输入示例图片", trigger: "blur" }]
 };
 
 const filteredSeasonings = computed(() => {
   const keyword = seasoningState.keyword.trim();
   return keyword
-    ? seasonings.value.filter(item => item.name.includes(keyword))
+    ? seasonings.value.filter(item => item.flavorName.includes(keyword))
     : seasonings.value;
 });
 const filteredIngredients = computed(() => {
   const keyword = ingredientState.keyword.trim();
   return keyword
-    ? ingredients.value.filter(item => item.name.includes(keyword))
+    ? ingredients.value.filter(item => item.materialName.includes(keyword))
     : ingredients.value;
 });
 const filteredRecipeSteps = computed(() => {
@@ -188,7 +219,7 @@ const filteredRecipeSteps = computed(() => {
   return keyword
     ? recipeSteps.value.filter(
         item =>
-          item.description.includes(keyword) ||
+          item.stepDescribe.includes(keyword) ||
           String(item.order).includes(keyword)
       )
     : recipeSteps.value;
@@ -231,24 +262,24 @@ const onCoverChange: UploadProps["onChange"] = (uploadFile: UploadFile) => {
 function resetSeasoningDialogForm() {
   seasoningDialogForm.id = null;
   seasoningDialogForm.editingIndex = null;
-  seasoningDialogForm.name = "";
+  seasoningDialogForm.flavorName = "";
   seasoningDialogForm.dosage = "";
 }
 
 function resetIngredientDialogForm() {
   ingredientDialogForm.id = null;
   ingredientDialogForm.editingIndex = null;
-  ingredientDialogForm.name = "";
+  ingredientDialogForm.materialName = "";
   ingredientDialogForm.dosage = "";
-  ingredientDialogForm.preparation = "";
+  ingredientDialogForm.deal = "";
 }
 
 function resetRecipeStepDialogForm() {
   recipeStepDialogForm.id = null;
   recipeStepDialogForm.editingIndex = null;
   recipeStepDialogForm.order = null;
-  recipeStepDialogForm.description = "";
-  recipeStepDialogForm.sampleImage = "";
+  recipeStepDialogForm.stepDescribe = "";
+  recipeStepDialogForm.stepImage = "";
 }
 
 function resetPageWhenNeeded<T>(list: T[], state: PagedSectionState) {
@@ -263,7 +294,7 @@ function openSeasoningDialog(item?: RecipeSeasoningItem) {
     const editingIndex = seasonings.value.indexOf(item);
     seasoningDialogForm.editingIndex = editingIndex > -1 ? editingIndex : null;
     seasoningDialogForm.id = item.id;
-    seasoningDialogForm.name = item.name;
+    seasoningDialogForm.flavorName = item.flavorName;
     seasoningDialogForm.dosage = item.dosage;
   } else {
     resetSeasoningDialogForm();
@@ -276,9 +307,9 @@ function openIngredientDialog(item?: RecipeIngredientItem) {
     const editingIndex = ingredients.value.indexOf(item);
     ingredientDialogForm.editingIndex = editingIndex > -1 ? editingIndex : null;
     ingredientDialogForm.id = item.id;
-    ingredientDialogForm.name = item.name;
+    ingredientDialogForm.materialName = item.materialName;
     ingredientDialogForm.dosage = item.dosage;
-    ingredientDialogForm.preparation = item.preparation;
+    ingredientDialogForm.deal = item.deal;
   } else {
     resetIngredientDialogForm();
   }
@@ -291,8 +322,8 @@ function openRecipeStepDialog(item?: RecipeStepItem) {
     recipeStepDialogForm.editingIndex = editingIndex > -1 ? editingIndex : null;
     recipeStepDialogForm.id = item.id;
     recipeStepDialogForm.order = item.order;
-    recipeStepDialogForm.description = item.description;
-    recipeStepDialogForm.sampleImage = item.sampleImage;
+    recipeStepDialogForm.stepDescribe = item.stepDescribe;
+    recipeStepDialogForm.stepImage = item.stepImage;
   } else {
     resetRecipeStepDialogForm();
   }
@@ -306,13 +337,13 @@ async function saveSeasoning() {
   if (seasoningDialogForm.editingIndex !== null) {
     const target = seasonings.value[seasoningDialogForm.editingIndex];
     if (target) {
-      target.name = seasoningDialogForm.name;
+      target.flavorName = seasoningDialogForm.flavorName;
       target.dosage = seasoningDialogForm.dosage;
     }
   } else {
     seasonings.value.unshift({
       id: Date.now(),
-      name: seasoningDialogForm.name,
+      flavorName: seasoningDialogForm.flavorName,
       dosage: seasoningDialogForm.dosage
     });
   }
@@ -329,16 +360,16 @@ async function saveIngredient() {
   if (ingredientDialogForm.editingIndex !== null) {
     const target = ingredients.value[ingredientDialogForm.editingIndex];
     if (target) {
-      target.name = ingredientDialogForm.name;
+      target.materialName = ingredientDialogForm.materialName;
       target.dosage = ingredientDialogForm.dosage;
-      target.preparation = ingredientDialogForm.preparation;
+      target.deal = ingredientDialogForm.deal;
     }
   } else {
     ingredients.value.unshift({
       id: Date.now(),
-      name: ingredientDialogForm.name,
+      materialName: ingredientDialogForm.materialName,
       dosage: ingredientDialogForm.dosage,
-      preparation: ingredientDialogForm.preparation
+      deal: ingredientDialogForm.deal
     });
   }
 
@@ -355,15 +386,15 @@ async function saveRecipeStep() {
     const target = recipeSteps.value[recipeStepDialogForm.editingIndex];
     if (target) {
       target.order = Number(recipeStepDialogForm.order);
-      target.description = recipeStepDialogForm.description;
-      target.sampleImage = recipeStepDialogForm.sampleImage;
+      target.stepDescribe = recipeStepDialogForm.stepDescribe;
+      target.stepImage = recipeStepDialogForm.stepImage;
     }
   } else {
     recipeSteps.value.unshift({
       id: Date.now(),
       order: Number(recipeStepDialogForm.order),
-      description: recipeStepDialogForm.description,
-      sampleImage: recipeStepDialogForm.sampleImage
+      stepDescribe: recipeStepDialogForm.stepDescribe,
+      stepImage: recipeStepDialogForm.stepImage
     });
   }
 
@@ -419,20 +450,20 @@ async function submitRecipe() {
     imgPath: dishInfoForm.imgPath,
     flavors: seasonings.value.map(item => ({
       id: item.id,
-      name: item.name,
+      flavorName: item.flavorName,
       dosage: item.dosage
     })),
     materials: ingredients.value.map(item => ({
       id: item.id,
-      name: item.name,
+      materialName: item.materialName,
       dosage: item.dosage,
-      preparation: item.preparation
+      deal: item.deal
     })),
     steps: recipeSteps.value.map(item => ({
       id: item.id,
       order: item.order,
-      description: item.description,
-      sampleImage: item.sampleImage
+      stepDescribe: item.stepDescribe,
+      stepImage: item.stepImage
     }))
   };
 
@@ -553,7 +584,7 @@ async function goNext() {
           >
         </div>
         <el-table :data="pagedSeasonings" border>
-          <el-table-column label="调料名" prop="name" min-width="220" />
+          <el-table-column label="调料名" prop="flavorName" min-width="220" />
           <el-table-column label="用量" prop="dosage" min-width="180" />
           <el-table-column label="操作" width="180" align="center">
             <template #default="{ row }">
@@ -594,11 +625,11 @@ async function goNext() {
           >
         </div>
         <el-table :data="pagedIngredients" border>
-          <el-table-column label="食材名" prop="name" min-width="180" />
+          <el-table-column label="食材名" prop="materialName" min-width="180" />
           <el-table-column label="用量" prop="dosage" min-width="160" />
           <el-table-column
             label="处理方式"
-            prop="preparation"
+            prop="deal"
             min-width="260"
             show-overflow-tooltip
           />
@@ -649,13 +680,13 @@ async function goNext() {
           />
           <el-table-column
             label="描述"
-            prop="description"
+            prop="stepDescribe"
             min-width="360"
             show-overflow-tooltip
           />
           <el-table-column
             label="示例图片"
-            prop="sampleImage"
+            prop="stepImage"
             min-width="260"
             show-overflow-tooltip
           />
@@ -719,9 +750,9 @@ async function goNext() {
         :rules="seasoningDialogRules"
         label-position="top"
       >
-        <el-form-item label="调料名" prop="name">
+        <el-form-item label="调料名" prop="flavorName">
           <el-input
-            v-model="seasoningDialogForm.name"
+            v-model="seasoningDialogForm.flavorName"
             placeholder="请输入调料名"
           />
         </el-form-item>
@@ -749,9 +780,9 @@ async function goNext() {
         :rules="ingredientDialogRules"
         label-position="top"
       >
-        <el-form-item label="食材名" prop="name">
+        <el-form-item label="食材名" prop="materialName">
           <el-input
-            v-model="ingredientDialogForm.name"
+            v-model="ingredientDialogForm.materialName"
             placeholder="请输入食材名"
           />
         </el-form-item>
@@ -761,9 +792,9 @@ async function goNext() {
             placeholder="请输入用量"
           />
         </el-form-item>
-        <el-form-item label="处理方式" prop="preparation">
+        <el-form-item label="处理方式" prop="deal">
           <el-input
-            v-model="ingredientDialogForm.preparation"
+            v-model="ingredientDialogForm.deal"
             type="textarea"
             :rows="4"
             placeholder="请输入处理方式"
@@ -795,17 +826,17 @@ async function goNext() {
             class="w-full"
           />
         </el-form-item>
-        <el-form-item label="描述" prop="description">
+        <el-form-item label="描述" prop="stepDescribe">
           <el-input
-            v-model="recipeStepDialogForm.description"
+            v-model="recipeStepDialogForm.stepDescribe"
             type="textarea"
             :rows="4"
             placeholder="请输入步骤描述"
           />
         </el-form-item>
-        <el-form-item label="示例图片" prop="sampleImage">
+        <el-form-item label="示例图片" prop="stepImage">
           <el-input
-            v-model="recipeStepDialogForm.sampleImage"
+            v-model="recipeStepDialogForm.stepImage"
             type="textarea"
             :rows="3"
             placeholder="请输入示例图片地址或说明"

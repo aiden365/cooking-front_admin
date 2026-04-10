@@ -10,8 +10,8 @@ export interface UserListParams {
 export interface UserShareListParams {
   pageNum: number;
   pageSize: number;
-  username?: string;
-  recipeName?: string;
+  userName?: string;
+  dishName?: string;
 }
 
 export interface UserDietListParams {
@@ -45,14 +45,10 @@ export type UserDetail = Omit<UserListItem, "createTime">;
 
 export interface UserShareItem {
   id: number;
-  username: string;
-  recipeName: string;
+  userName: string;
+  dishName: string;
   description: string;
-  imageName: string;
-}
-
-export interface UserShareDetail extends UserShareItem {
-  imageUrl: string;
+  dishImg: string;
 }
 
 export interface UserDietItem {
@@ -140,7 +136,7 @@ export interface UserDetailResult {
 export interface UserShareDetailResult {
   success: boolean;
   code: number;
-  data: UserShareDetail;
+  data: UserShareItem;
   message: string;
 }
 
@@ -325,9 +321,9 @@ export const getUserList = (data: UserListParams) => {
   });
 };
 
-export const getUserShareList = (params: UserShareListParams) => {
-  return http.request<UserShareListResult>("get", "/system/user/share-list", {
-    params
+export const getUserShareList = (data: UserShareListParams) => {
+  return http.request<UserShareListResult>("post", baseUrlApi("share/page"), {
+    data
   });
 };
 

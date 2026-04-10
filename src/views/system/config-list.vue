@@ -38,7 +38,7 @@ interface AiModelForm {
 }
 
 interface CountForm {
-  maxCount: number;
+  paramValue: string;
 }
 
 interface NutritionForm {
@@ -49,7 +49,7 @@ const loading = ref(false);
 const dialogVisible = ref(false);
 const dialogLoading = ref(false);
 const saveLoading = ref(false);
-const activeKey = ref<SystemConfigKey | "">("");
+const activeKey = ref<number | null>(null);
 const cards = ref<SystemConfigCardItem[]>([]);
 
 const searchForm = reactive<SearchForm>({
@@ -65,7 +65,7 @@ const aiForm = reactive<AiModelForm>({
 });
 
 const countForm = reactive<CountForm>({
-  maxCount: 1
+  paramValue: null
 });
 
 const nutritionForm = reactive<NutritionForm>({
@@ -88,7 +88,7 @@ const aiRules: FormRules = {
 };
 
 const countRules: FormRules = {
-  maxCount: [{ required: true, message: "请输入数量", trigger: "change" }]
+  paramValue: [{ required: true, message: "请输入数量", trigger: "change" }]
 };
 
 const filteredCards = computed<ConfigCardViewItem[]>(() => {
@@ -108,12 +108,9 @@ const filteredCards = computed<ConfigCardViewItem[]>(() => {
 });
 
 const dialogTitle = computed(() => {
-  const current = cards.value.find(item => item.key === activeKey.value);
+  const current = cards.value.find(item => item.id === activeKey.value);
   return current ? `编辑${current.name}` : "编辑参数";
 });
-
-const isAiDialog = computed(() => activeKey.value === "aiModel");
-const isNutritionDialog = computed(() => activeKey.value === "nutritionNames");
 
 async function loadCards() {
   loading.value = true;
@@ -128,26 +125,19 @@ async function loadCards() {
 function resetForms() {
   aiForm.ApiUrl = "";
   aiForm.ApiKey = "";
-  countForm.maxCount = 1;
+  countForm.paramValue = "";
   nutritionForm.nutritionNames = [];
 }
 
 async function handleEdit(item: ConfigCardViewItem) {
-  activeKey.value = item.key;
+  activeKey.value = item.id;
   dialogVisible.value = true;
   dialogLoading.value = true;
   resetForms();
 
   try {
     const result = await getSystemConfigDetail(item.key);
-    if (item.key === "aiModel" && result.data.aiModelConfig) {
-      aiForm.ApiUrl = result.data.aiModelConfig.ApiUrl;
-      aiForm.ApiKey = result.data.aiModelConfig.ApiKey;
-    } else if (item.key === "nutritionNames") {
-      nutritionForm.nutritionNames = [...(result.data.nutritionNames ?? [])];
-    } else {
-      countForm.maxCount = result.data.maxCount ?? 1;
-    }
+    countForm.paramValue = result.data.value ?? "1";
   } finally {
     dialogLoading.value = false;
   }
@@ -155,7 +145,7 @@ async function handleEdit(item: ConfigCardViewItem) {
 
 function handleDialogClose() {
   dialogVisible.value = false;
-  activeKey.value = "";
+  activeKey.value = null;
   resetForms();
 }
 
@@ -170,49 +160,16 @@ function removeNutritionItem(index: number) {
 async function handleSave() {
   if (!activeKey.value) return;
 
-  if (activeKey.value === "aiModel") {
-    const valid = await aiFormRef.value?.validate().catch(() => false);
-    if (!valid) return;
-  }
-
-  if (!isAiDialog.value && !isNutritionDialog.value) {
-    const valid = await countFormRef.value?.validate().catch(() => false);
-    if (!valid) return;
-  }
-
-  if (activeKey.value === "nutritionNames") {
-    const names = nutritionForm.nutritionNames
-      .map(item => item.trim())
-      .filter(Boolean);
-    if (names.length === 0) {
-      ElMessage.warning("请至少保留一个营养参数");
-      return;
-    }
-    nutritionForm.nutritionNames = names;
-  }
-
   saveLoading.value = true;
   try {
-    if (activeKey.value === "aiModel") {
-      await saveSystemConfig({
-        key: activeKey.value,
-        aiModelConfig: { ...aiForm }
-      });
-    } else if (activeKey.value === "nutritionNames") {
-      await saveSystemConfig({
-        key: activeKey.value,
-        nutritionNames: [...nutritionForm.nutritionNames]
-      });
-    } else {
-      await saveSystemConfig({
-        key: activeKey.value,
-        maxCount: countForm.maxCount
-      });
-    }
-
-    ElMessage.success("参数保存成功");
-    handleDialogClose();
-    loadCards();
+    saveSystemConfig({
+      id: activeKey.value,
+      paramValue: countForm.paramValue
+    }).then(e => {
+      ElMessage.success("参数保存成功");
+      handleDialogClose();
+      loadCards();
+    });
   } finally {
     saveLoading.value = false;
   }
@@ -303,58 +260,14 @@ onMounted(() => {
     >
       <div v-loading="dialogLoading">
         <el-form
-          v-if="isAiDialog"
-          ref="aiFormRef"
-          :model="aiForm"
-          :rules="aiRules"
-          label-width="90px"
-        >
-          <el-form-item label="ApiUrl" prop="ApiUrl">
-            <el-input v-model="aiForm.ApiUrl" placeholder="请输入 ApiUrl" />
-          </el-form-item>
-          <el-form-item label="ApiKey" prop="ApiKey">
-            <el-input v-model="aiForm.ApiKey" placeholder="请输入 ApiKey" />
-          </el-form-item>
-        </el-form>
-
-        <el-form
-          v-else-if="isNutritionDialog"
-          label-width="0"
-          class="space-y-3"
-        >
-          <div
-            v-for="(item, index) in nutritionForm.nutritionNames"
-            :key="`${index}-${item}`"
-            class="flex items-center gap-3"
-          >
-            <el-input
-              v-model="nutritionForm.nutritionNames[index]"
-              placeholder="请输入营养参数名称"
-            />
-            <el-button
-              type="danger"
-              plain
-              :disabled="nutritionForm.nutritionNames.length <= 1"
-              @click="removeNutritionItem(index)"
-            >
-              删除
-            </el-button>
-          </div>
-          <el-button type="primary" plain @click="addNutritionItem">
-            新增参数
-          </el-button>
-        </el-form>
-
-        <el-form
-          v-else
           ref="countFormRef"
           :model="countForm"
           :rules="countRules"
           label-width="120px"
         >
-          <el-form-item label="数量上限" prop="maxCount">
+          <el-form-item label="参数值" prop="paramValue">
             <el-input-number
-              v-model="countForm.maxCount"
+              v-model="countForm.paramValue"
               :min="1"
               :max="99"
               controls-position="right"

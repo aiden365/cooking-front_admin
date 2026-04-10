@@ -41,7 +41,7 @@ export interface UserListItem {
   registerTime: string;
 }
 
-export interface UserDetail extends Omit<UserListItem, "registerTime"> {}
+export type UserDetail = Omit<UserListItem, "registerTime">;
 
 export interface UserShareItem {
   id: number;
@@ -253,7 +253,7 @@ export interface AdminListItem {
   registerTime: string;
 }
 
-export interface AdminDetail extends Omit<AdminListItem, "registerTime"> {}
+export type AdminDetail = Omit<AdminListItem, "registerTime">;
 
 export interface AdminSavePayload {
   id?: number;
@@ -303,7 +303,9 @@ export type SystemConfigKey =
   | "maxUserLoginCount";
 
 export interface SystemConfigCardItem {
+  id: number;
   key: SystemConfigKey;
+  value: string;
   name: string;
   description: string;
 }
@@ -314,19 +316,16 @@ export interface AiModelConfig {
 }
 
 export interface SystemConfigDetail {
+  id: number;
   key: SystemConfigKey;
+  value: string;
   name: string;
   description: string;
-  aiModelConfig?: AiModelConfig;
-  maxCount?: number;
-  nutritionNames?: string[];
 }
 
 export interface SaveSystemConfigPayload {
-  key: SystemConfigKey;
-  aiModelConfig?: AiModelConfig;
-  maxCount?: number;
-  nutritionNames?: string[];
+  id: number;
+  paramValue: string;
 }
 
 export interface SystemConfigListResult {
@@ -382,7 +381,7 @@ export const getUserNutritionTargets = (userId: number) => {
 export const getNutritionNameConfig = () => {
   return http.request<NutritionNameConfigResult>(
     "get",
-    "/system/config/nutrition-names"
+    "system/param/nutrition-names"
   );
 };
 
@@ -430,80 +429,34 @@ export const deleteUserDiet = (dietId: number) => {
   });
 };
 
-export const getUserDetail = (userId: number) => {
-  return http.request<UserDetailResult>("get", "/system/user/detail", {
-    params: { userId }
-  });
-};
-
-export const saveUser = (data: UserSavePayload) => {
-  return http.request<UserActionResult>("post", "/system/user/save", {
-    data
-  });
-};
-
-export const resetUserPassword = (data: ResetPasswordPayload) => {
-  return http.request<UserActionResult>("post", "/system/user/reset-password", {
-    data
-  });
-};
-
-export const updateUserStatus = (data: UpdateUserStatusPayload) => {
-  return http.request<UserActionResult>("post", "/system/user/update-status", {
-    data
-  });
-};
-
 export const getSystemConfigList = () => {
-  return http.request<SystemConfigListResult>("get", "/system/config/list");
+  return http.request<SystemConfigListResult>(
+    "post",
+    baseUrlApi("system/param/list"),
+    {
+      data: {}
+    }
+  );
 };
 
 export const getSystemConfigDetail = (key: SystemConfigKey) => {
   return http.request<SystemConfigDetailResult>(
-    "get",
-    "/system/config/detail",
+    "post",
+    baseUrlApi("system/param/detail"),
     {
-      params: { key }
+      data: { key }
     }
   );
 };
 
 export const saveSystemConfig = (data: SaveSystemConfigPayload) => {
-  return http.request<UserActionResult>("post", "/system/config/save", {
-    data
-  });
-};
-
-export const getAdminList = (params: AdminListParams) => {
-  return http.request<AdminListResult>("get", "/system/admin/list", { params });
-};
-
-export const getAdminDetail = (adminId: number) => {
-  return http.request<AdminDetailResult>("get", "/system/admin/detail", {
-    params: { adminId }
-  });
-};
-
-export const saveAdmin = (data: AdminSavePayload) => {
-  return http.request<UserActionResult>("post", "/system/admin/save", {
-    data
-  });
-};
-
-export const resetAdminPassword = (data: ResetAdminPasswordPayload) => {
   return http.request<UserActionResult>(
     "post",
-    "/system/admin/reset-password",
+    baseUrlApi("system/param/save"),
     {
       data
     }
   );
-};
-
-export const updateAdminStatus = (data: UpdateAdminStatusPayload) => {
-  return http.request<UserActionResult>("post", "/system/admin/update-status", {
-    data
-  });
 };
 
 export const getSystemNutritionList = (data: SystemNutritionListParams) => {

@@ -97,15 +97,15 @@ function handleSearch() {
 }
 
 function handleAdd() {
-  router.push("/user/save");
+  router.push("/user/add");
 }
 
 function handleEdit(row: UserListItem) {
-  router.push(`/user/save/${row.id}`);
+  router.push(`/user/edit/${row.id}`);
 }
 
 function openPasswordDialog(row: UserListItem) {
-  selectedUserName.value = row.username;
+  selectedUserName.value = row.userName;
   passwordForm.userId = row.id;
   passwordForm.password = "";
   passwordForm.confirmPassword = "";
@@ -126,11 +126,17 @@ async function savePassword() {
 
 async function toggleStatus(row: UserListItem) {
   const nextStatus = row.status === 1 ? 3 : 1;
-  await updateUserStatus({
+  updateUserStatus({
     userId: row.id,
     status: nextStatus
+  }).then(e => {
+    if (e.success) {
+      ElMessage.success(`已触发${nextStatus === 1 ? "启用" : "禁用"}操作`);
+      loadUserList();
+    } else {
+      ElMessage.error(e.message);
+    }
   });
-  ElMessage.success(`已触发${nextStatus === 1 ? "启用" : "禁用"}操作`);
 }
 
 function handleCurrentChange(page: number) {
@@ -160,19 +166,31 @@ async function nutritionManage(row: UserListItem) {
 async function handleSaveTarget(row: UserNutritionTargetItem) {
   await saveUserNutritionTarget({
     id: row.id,
+    userId: row.userId,
     nutritionId: row.nutritionId,
     nutritionName: row.nutritionName,
     value: row.value
+  }).then(e => {
+    debugger;
+    if (e.success) {
+      ElMessage.success("营养目标已保存");
+    } else {
+      ElMessage.error(e.message);
+    }
   });
-  ElMessage.success("营养目标已保存");
 }
 
 async function handleDeleteTarget(row: UserNutritionTargetItem) {
-  await deleteUserNutritionTarget(row.id);
-  nutritionTargets.value = nutritionTargets.value.filter(
-    item => item.id !== row.id
-  );
-  ElMessage.success("营养目标已删除");
+  await deleteUserNutritionTarget(row.id).then(e => {
+    if (e.success) {
+      nutritionTargets.value = nutritionTargets.value.filter(
+        item => item.id !== row.id
+      );
+      ElMessage.success("营养目标已删除");
+    } else {
+      ElMessage.error(e.message);
+    }
+  });
 }
 
 async function loadNutritionList() {
@@ -261,6 +279,9 @@ onMounted(() => {
             <el-button link type="primary" @click="handleEdit(row)"
               >编辑</el-button
             >
+            <el-button link type="primary" @click="nutritionManage(row)"
+              >营养管理</el-button
+            >
             <el-button link type="warning" @click="openPasswordDialog(row)"
               >修改密码</el-button
             >
@@ -271,10 +292,6 @@ onMounted(() => {
             >
               {{ row.status === 1 ? "禁用" : "启用" }}
             </el-button>
-
-            <el-button link type="primary" @click="nutritionManage(row)"
-              >详情</el-button
-            >
           </template>
         </el-table-column>
         <template #empty>

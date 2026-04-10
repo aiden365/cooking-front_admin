@@ -20,7 +20,7 @@ import { ElMessage, type FormInstance, type FormRules } from "element-plus";
 import {
   getRepositoryDetail,
   saveRepository,
-  type RepositoryDetail,
+  type RepositoryItem,
   type RepositorySavePayload,
   type RepositoryType
 } from "@/api/repository";
@@ -82,7 +82,7 @@ const rules: FormRules<RepositoryForm> = {
   ]
 };
 
-function fillForm(detail: RepositoryDetail) {
+function fillForm(detail: RepositoryItem) {
   form.name = detail.name;
   form.type = detail.type;
   form.description = detail.description;

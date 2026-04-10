@@ -17,8 +17,8 @@ export default {
       }
     },
     {
-      path: "/dish/save",
-      name: "DishSave",
+      path: "/dish/add",
+      name: "DishAdd",
       component: () => import("@/views/dish/save.vue"),
       meta: {
         title: "新增菜谱",
@@ -27,8 +27,8 @@ export default {
       }
     },
     {
-      path: "/dish/save/:id",
-      name: "DishSave",
+      path: "/dish/edit/:id",
+      name: "DishEdit",
       component: () => import("@/views/dish/save.vue"),
       meta: {
         title: "编辑菜谱",

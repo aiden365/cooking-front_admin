@@ -31,17 +31,17 @@ export interface UserNutritionListParams {
 
 export interface UserListItem {
   id: number;
-  username: string;
-  account: string;
+  userName: string;
+  userCode: string;
   age: number;
-  gender: 1 | 1;
-  height: number;
+  gender: 1 | 2;
+  stature: number;
   weight: number;
   status: 1 | 2;
-  registerTime: string;
+  createTime: string;
 }
 
-export type UserDetail = Omit<UserListItem, "registerTime">;
+export type UserDetail = Omit<UserListItem, "createTime">;
 
 export interface UserShareItem {
   id: number;
@@ -65,6 +65,7 @@ export interface UserDietItem {
 
 export interface UserNutritionTargetItem {
   id: number;
+  userId: number;
   nutritionId: number;
   nutritionName: string;
   value: string;
@@ -72,11 +73,11 @@ export interface UserNutritionTargetItem {
 
 export interface UserSavePayload {
   id?: number;
-  username: string;
-  account: string;
+  userName: string;
+  userCode: string;
   age: number;
   gender: 1 | 2;
-  height: number;
+  stature: number;
   weight: number;
   status: 1 | 2;
 }
@@ -162,6 +163,7 @@ export interface UpdateUserStatusPayload {
 
 export interface SaveUserNutritionTargetPayload {
   id: number;
+  userId: number;
   nutritionId: number;
   nutritionName: string;
   value: string;
@@ -409,9 +411,9 @@ export const deleteUserDiet = (dietId: number) => {
   });
 };
 
-export const getUserDetail = (userId: number) => {
-  return http.request<UserDetailResult>("get", baseUrlApi("user/detail"), {
-    params: { userId }
+export const getUserDetail = (id: number) => {
+  return http.request<UserDetailResult>("post", baseUrlApi("user/detail"), {
+    data: { id: id }
   });
 };
 

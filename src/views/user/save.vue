@@ -14,12 +14,12 @@ defineOptions({
 });
 
 interface UserForm {
-  username: string;
-  account: string;
+  userName: string;
+  userCode: string;
   password: string;
   age: number | null;
   gender: 1 | 2;
-  height: number | null;
+  stature: number | null;
   weight: number | null;
   status: 1 | 2;
 }
@@ -41,19 +41,19 @@ const pageTitle = computed(() => (userId.value ? "编辑用户" : "新增用户"
 const isEditMode = computed(() => userId.value !== null);
 
 const form = reactive<UserForm>({
-  username: "",
-  account: "",
+  userName: "",
+  userCode: "",
   password: "",
   age: null,
   gender: 1,
-  height: null,
+  stature: null,
   weight: null,
   status: 1
 });
 
 const rules: FormRules<UserForm> = {
-  username: [{ required: true, message: "请输入用户名", trigger: "blur" }],
-  account: [{ required: true, message: "请输入账户", trigger: "blur" }],
+  userName: [{ required: true, message: "请输入用户名", trigger: "blur" }],
+  userCode: [{ required: true, message: "请输入账户", trigger: "blur" }],
   password: [
     {
       validator: (_rule, value: string, callback) => {
@@ -68,18 +68,18 @@ const rules: FormRules<UserForm> = {
   ],
   age: [{ required: true, message: "请输入年龄", trigger: "change" }],
   gender: [{ required: true, message: "请输入性别", trigger: "blur" }],
-  height: [{ required: true, message: "请输入身高", trigger: "change" }],
+  stature: [{ required: true, message: "请输入身高", trigger: "change" }],
   weight: [{ required: true, message: "请输入体重", trigger: "change" }],
   status: [{ required: true, message: "请选择用户状态", trigger: "change" }]
 };
 
 function fillForm(detail: UserDetail) {
-  form.username = detail.username;
-  form.account = detail.account;
+  form.userName = detail.userName;
+  form.userCode = detail.userCode;
   form.password = "";
   form.age = detail.age;
   form.gender = detail.gender;
-  form.height = detail.height;
+  form.stature = detail.stature;
   form.weight = detail.weight;
   form.status = detail.status;
 }
@@ -100,11 +100,11 @@ async function handleSave() {
   if (!valid) return;
 
   const payload: UserSavePayload = {
-    username: form.username,
-    account: form.account,
+    userName: form.userName,
+    userCode: form.userCode,
     age: Number(form.age),
     gender: form.gender,
-    height: Number(form.height),
+    stature: Number(form.stature),
     weight: Number(form.weight),
     status: form.status
   };
@@ -115,9 +115,14 @@ async function handleSave() {
 
   saving.value = true;
   try {
-    await saveUser(payload);
-    ElMessage.success(userId.value ? "用户信息修改成功" : "用户新增成功");
-    router.push("/user/list");
+    saveUser(payload).then(e => {
+      if (e.success) {
+        ElMessage.success(userId.value ? "用户信息修改成功" : "用户新增成功");
+        router.push("/user/list");
+      } else {
+        ElMessage.error(e.message);
+      }
+    });
   } finally {
     saving.value = false;
   }
@@ -140,11 +145,11 @@ onMounted(() => {
         label-position="top"
         class="mx-auto max-w-[760px]"
       >
-        <el-form-item label="用户名" prop="username">
-          <el-input v-model="form.username" placeholder="请输入用户名" />
+        <el-form-item label="用户名" prop="userName">
+          <el-input v-model="form.userName" placeholder="请输入用户名" />
         </el-form-item>
-        <el-form-item label="账户" prop="account">
-          <el-input v-model="form.account" placeholder="请输入账户" />
+        <el-form-item label="账户" prop="userCode">
+          <el-input v-model="form.userCode" placeholder="请输入账户" />
         </el-form-item>
         <el-form-item v-if="!isEditMode" label="用户密码" prop="password">
           <el-input
@@ -154,9 +159,14 @@ onMounted(() => {
             placeholder="请输入用户密码"
           />
         </el-form-item>
-        <el-form-item label="性别" prop="gender">
-          <el-input v-model="form.gender" placeholder="请输入性别" />
+
+        <el-form-item label="用户性别" prop="gender">
+          <el-select v-model="form.gender" class="w-full">
+            <el-option label="男" :value="1" />
+            <el-option label="女" :value="2" />
+          </el-select>
         </el-form-item>
+
         <el-form-item label="年龄" prop="age">
           <el-input-number
             v-model="form.age"
@@ -165,9 +175,9 @@ onMounted(() => {
             class="w-full"
           />
         </el-form-item>
-        <el-form-item label="身高" prop="height">
+        <el-form-item label="身高" prop="stature">
           <el-input-number
-            v-model="form.height"
+            v-model="form.stature"
             :min="50"
             :max="260"
             class="w-full"

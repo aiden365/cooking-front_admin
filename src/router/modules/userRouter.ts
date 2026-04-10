@@ -16,8 +16,8 @@ export default {
       }
     },
     {
-      path: "/user/save",
-      name: "UserSave",
+      path: "/user/add",
+      name: "UserAdd",
       component: () => import("@/views/user/save.vue"),
       meta: {
         title: "新增用户",
@@ -26,8 +26,8 @@ export default {
       }
     },
     {
-      path: "/user/save/:id",
-      name: "UserSave",
+      path: "/user/edit/:id",
+      name: "UserEdit",
       component: () => import("@/views/user/save.vue"),
       meta: {
         title: "编辑用户",
@@ -50,15 +50,6 @@ export default {
       component: () => import("@/views/user/diet-list.vue"),
       meta: {
         title: "饮食管理",
-        showParent: true
-      }
-    },
-    {
-      path: "/user/nutrition-list",
-      name: "UserNutritionList",
-      component: () => import("@/views/user/nutrition-list.vue"),
-      meta: {
-        title: "营养管理",
         showParent: true
       }
     }

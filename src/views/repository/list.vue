@@ -40,7 +40,7 @@ async function loadRepositoryList() {
     const params: RepositoryListParams = {
       pageNum: pagination.pageNum,
       pageSize: pagination.pageSize,
-      keyword: searchForm.keyword.trim(),
+      search: searchForm.keyword.trim(),
       type: searchForm.type
     };
     const result = await getRepositoryList(params);
@@ -159,7 +159,7 @@ onMounted(() => {
         </el-table-column> -->
         <el-table-column label="创建人" prop="creatorName" min-width="140" />
 
-        <el-table-column label="创建时间" prop="createdAt" min-width="180" />
+        <el-table-column label="创建时间" prop="createTime" min-width="180" />
 
         <el-table-column
           label="操作"

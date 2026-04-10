@@ -57,10 +57,10 @@ const pageTitle = computed(() =>
 );
 
 const form = reactive<RepositoryForm>({
-  name: "",
+  name: "测试知识1",
   type: 1,
-  description: "",
-  content: ""
+  description: "这只是一条测试描述。",
+  content: "这只是一条测试内容。"
 });
 
 const rules: FormRules<RepositoryForm> = {

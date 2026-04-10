@@ -1,11 +1,12 @@
 import { http } from "@/utils/http";
+import { baseUrlApi } from "@/api/utils";
 
 export type RepositoryType = 1 | 2;
 
 export interface RepositoryListParams {
   pageNum: number;
   pageSize: number;
-  keyword?: string;
+  search?: string;
   type?: RepositoryType | "";
 }
 
@@ -13,15 +14,13 @@ export interface RepositoryItem {
   id: number;
   name: string;
   type: RepositoryType;
+  fileName: string;
   description: string;
   content: string;
-  fileName: string;
   fileUrl: string;
   creatorName: string;
-  createdAt: string;
+  creatorTime: string;
 }
-
-export interface RepositoryDetail extends RepositoryItem {}
 
 export interface RepositorySavePayload {
   id?: number;
@@ -46,7 +45,7 @@ export interface RepositoryListResult {
 export interface RepositoryDetailResult {
   success: boolean;
   code: number;
-  data: RepositoryDetail;
+  data: RepositoryItem;
   message: string;
 }
 
@@ -57,26 +56,42 @@ export interface RepositoryActionResult {
   message: string;
 }
 
-export const getRepositoryList = (params: RepositoryListParams) => {
-  return http.request<RepositoryListResult>("get", "/repository/list", {
-    params
-  });
+export const getRepositoryList = (data: RepositoryListParams) => {
+  return http.request<RepositoryListResult>(
+    "post",
+    baseUrlApi("repository/page"),
+    {
+      data
+    }
+  );
 };
 
 export const getRepositoryDetail = (id: number) => {
-  return http.request<RepositoryDetailResult>("get", "/repository/detail", {
-    params: { id }
-  });
+  return http.request<RepositoryDetailResult>(
+    "post",
+    baseUrlApi("repository/detail"),
+    {
+      data: { id }
+    }
+  );
 };
 
 export const saveRepository = (data: RepositorySavePayload) => {
-  return http.request<RepositoryActionResult>("post", "/repository/save", {
-    data
-  });
+  return http.request<RepositoryActionResult>(
+    "post",
+    baseUrlApi("repository/save"),
+    {
+      data
+    }
+  );
 };
 
 export const deleteRepository = (id: number) => {
-  return http.request<RepositoryActionResult>("post", "/repository/delete", {
-    data: { id }
-  });
+  return http.request<RepositoryActionResult>(
+    "post",
+    baseUrlApi("repository/delete"),
+    {
+      data: { ids: [id] }
+    }
+  );
 };

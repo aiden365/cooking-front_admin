@@ -16,9 +16,9 @@ export default {
       }
     },
     {
-      path: "/user/add",
-      name: "UserAdd",
-      component: () => import("@/views/user/edit.vue"),
+      path: "/user/save",
+      name: "UserSave",
+      component: () => import("@/views/user/save.vue"),
       meta: {
         title: "新增用户",
         showLink: false,
@@ -26,9 +26,9 @@ export default {
       }
     },
     {
-      path: "/user/edit/:id",
-      name: "UserEdit",
-      component: () => import("@/views/user/edit.vue"),
+      path: "/user/save/:id",
+      name: "UserSave",
+      component: () => import("@/views/user/save.vue"),
       meta: {
         title: "编辑用户",
         showLink: false,

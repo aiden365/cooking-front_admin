@@ -1,13 +1,19 @@
 <script setup lang="ts">
-import { reactive, ref } from "vue";
+import { reactive, ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { ElMessage, type FormInstance, type FormRules } from "element-plus";
 import {
+  deleteUserNutritionTarget,
   getUserList,
   resetUserPassword,
   updateUserStatus,
+  getUserNutritionTargets,
+  saveUserNutritionTarget,
+  getSystemNutritionList,
   type UserListItem,
-  type UserListParams
+  type UserListParams,
+  type SystemNutritionItem,
+  type UserNutritionTargetItem
 } from "@/api/system";
 
 defineOptions({
@@ -27,6 +33,8 @@ interface PasswordForm {
 const router = useRouter();
 const loading = ref(false);
 const dialogVisible = ref(false);
+const nutritionDialogVisible = ref(false);
+
 const passwordFormRef = ref<FormInstance>();
 const selectedUserName = ref("");
 const userList = ref<UserListItem[]>([]);
@@ -46,6 +54,9 @@ const passwordForm = reactive<PasswordForm>({
   password: "",
   confirmPassword: ""
 });
+
+const nutritionList = ref<SystemNutritionItem[]>([]);
+const nutritionTargets = ref<UserNutritionTargetItem[]>([]);
 
 const passwordRules: FormRules<PasswordForm> = {
   password: [{ required: true, message: "请输入新密码", trigger: "blur" }],
@@ -70,7 +81,7 @@ async function loadUserList() {
     const params: UserListParams = {
       pageNum: pagination.pageNum,
       pageSize: pagination.pageSize,
-      keyword: searchForm.keyword.trim()
+      search: searchForm.keyword.trim()
     };
     const result = await getUserList(params);
     userList.value = result.data.records;
@@ -86,11 +97,11 @@ function handleSearch() {
 }
 
 function handleAdd() {
-  router.push("/user/add");
+  router.push("/user/save");
 }
 
 function handleEdit(row: UserListItem) {
-  router.push(`/user/edit/${row.id}`);
+  router.push(`/user/save/${row.id}`);
 }
 
 function openPasswordDialog(row: UserListItem) {
@@ -135,7 +146,48 @@ function getStatusTagType(status: 1 | 3) {
   return status === 1 ? "success" : "danger";
 }
 
-loadUserList();
+async function nutritionManage(row: UserListItem) {
+  loading.value = true;
+  nutritionDialogVisible.value = true;
+  try {
+    const result = await getUserNutritionTargets(row.id);
+    nutritionTargets.value = result.data.records.map(item => ({ ...item }));
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function handleSaveTarget(row: UserNutritionTargetItem) {
+  await saveUserNutritionTarget({
+    id: row.id,
+    nutritionId: row.nutritionId,
+    nutritionName: row.nutritionName,
+    value: row.value
+  });
+  ElMessage.success("营养目标已保存");
+}
+
+async function handleDeleteTarget(row: UserNutritionTargetItem) {
+  await deleteUserNutritionTarget(row.id);
+  nutritionTargets.value = nutritionTargets.value.filter(
+    item => item.id !== row.id
+  );
+  ElMessage.success("营养目标已删除");
+}
+
+async function loadNutritionList() {
+  getSystemNutritionList({
+    pageNum: 0,
+    pageSize: -1
+  }).then(e => {
+    nutritionList.value = e.data.records;
+  });
+}
+
+onMounted(() => {
+  loadUserList();
+  loadNutritionList();
+});
 </script>
 
 <template>
@@ -171,13 +223,17 @@ loadUserList();
           fontWeight: '600'
         }"
       >
-        <el-table-column label="用户名" prop="username" min-width="140" />
-        <el-table-column label="账户" prop="account" min-width="150" />
+        <el-table-column label="用户名" prop="userName" min-width="140" />
+        <!-- <el-table-column label="账户" prop="userCode" min-width="100" /> -->
         <el-table-column label="年龄" prop="age" width="90" align="center" />
-        <el-table-column label="性别" prop="gender" width="90" align="center" />
+        <el-table-column label="性别" prop="gender" width="90" align="center">
+          <template #default="{ row }">
+            {{ row.gender == 1 ? "男" : "女" }}
+          </template>
+        </el-table-column>
         <el-table-column
           label="身高(cm)"
-          prop="height"
+          prop="stature"
           width="110"
           align="center"
         />
@@ -194,7 +250,7 @@ loadUserList();
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="注册时间" prop="registerTime" min-width="180" />
+        <el-table-column label="注册时间" prop="createTime" min-width="180" />
         <el-table-column
           label="操作"
           fixed="right"
@@ -215,6 +271,10 @@ loadUserList();
             >
               {{ row.status === 1 ? "禁用" : "启用" }}
             </el-button>
+
+            <el-button link type="primary" @click="nutritionManage(row)"
+              >详情</el-button
+            >
           </template>
         </el-table-column>
         <template #empty>
@@ -266,6 +326,41 @@ loadUserList();
         <el-button @click="dialogVisible = false">取消</el-button>
         <el-button type="primary" @click="savePassword">保存</el-button>
       </template>
+    </el-dialog>
+
+    <el-dialog v-model="nutritionDialogVisible" title="营养目标" width="760px">
+      <el-table v-loading="loading" :data="nutritionTargets" border>
+        <el-table-column label="营养名称" min-width="220">
+          <template #default="{ row }">
+            <el-select v-model="row.nutritionId" class="w-full">
+              <el-option
+                v-for="option in nutritionList"
+                :key="option.id"
+                :label="option.name"
+                :value="option.id"
+              />
+            </el-select>
+          </template>
+        </el-table-column>
+        <el-table-column label="目标值" min-width="180">
+          <template #default="{ row }">
+            <el-input v-model="row.value" placeholder="请输入目标值" />
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" min-width="160" align="center">
+          <template #default="{ row }">
+            <el-button link type="primary" @click="handleSaveTarget(row)"
+              >保存</el-button
+            >
+            <el-button link type="danger" @click="handleDeleteTarget(row)"
+              >删除</el-button
+            >
+          </template>
+        </el-table-column>
+        <template #empty>
+          <el-empty description="暂无营养目标" />
+        </template>
+      </el-table>
     </el-dialog>
   </div>
 </template>

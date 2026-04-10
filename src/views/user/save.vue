@@ -10,7 +10,7 @@ import {
 } from "@/api/system";
 
 defineOptions({
-  name: "UserEdit"
+  name: "UserSave"
 });
 
 interface UserForm {
@@ -18,10 +18,10 @@ interface UserForm {
   account: string;
   password: string;
   age: number | null;
-  gender: "男" | "女";
+  gender: 1 | 2;
   height: number | null;
   weight: number | null;
-  status: 1 | 3;
+  status: 1 | 2;
 }
 
 const route = useRoute();
@@ -45,7 +45,7 @@ const form = reactive<UserForm>({
   account: "",
   password: "",
   age: null,
-  gender: "男",
+  gender: 1,
   height: null,
   weight: null,
   status: 1

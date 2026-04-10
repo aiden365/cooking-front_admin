@@ -4,7 +4,7 @@ import { baseUrlApi } from "./utils";
 export interface UserListParams {
   pageNum: number;
   pageSize: number;
-  keyword?: string;
+  search?: string;
 }
 
 export interface UserShareListParams {
@@ -26,7 +26,7 @@ export interface UserDietListParams {
 export interface UserNutritionListParams {
   pageNum: number;
   pageSize: number;
-  username?: string;
+  search?: string;
 }
 
 export interface UserListItem {
@@ -34,10 +34,10 @@ export interface UserListItem {
   username: string;
   account: string;
   age: number;
-  gender: "男" | "女";
+  gender: 1 | 1;
   height: number;
   weight: number;
-  status: 1 | 3;
+  status: 1 | 2;
   registerTime: string;
 }
 
@@ -63,20 +63,11 @@ export interface UserDietItem {
   mealTime: 1 | 2 | 3;
 }
 
-export interface UserNutritionItem {
-  id: number;
-  username: string;
-  nutritionCount: number;
-  gender: "男" | "女";
-  age: number;
-  height: number;
-  weight: number;
-}
-
 export interface UserNutritionTargetItem {
   id: number;
+  nutritionId: number;
   nutritionName: string;
-  targetValue: string;
+  value: string;
 }
 
 export interface UserSavePayload {
@@ -84,10 +75,10 @@ export interface UserSavePayload {
   username: string;
   account: string;
   age: number;
-  gender: "男" | "女";
+  gender: 1 | 2;
   height: number;
   weight: number;
-  status: 1 | 3;
+  status: 1 | 2;
 }
 
 export interface UserListResult {
@@ -126,32 +117,15 @@ export interface UserDietListResult {
   message: string;
 }
 
-export interface UserNutritionListResult {
-  success: boolean;
-  code: number;
-  data: {
-    records: UserNutritionItem[];
-    total: number;
-    current: number;
-    size: number;
-  };
-  message: string;
-}
-
 export interface UserNutritionTargetListResult {
   success: boolean;
   code: number;
   data: {
-    username: string;
-    list: UserNutritionTargetItem[];
+    records: UserNutritionTargetItem[];
+    total: number;
+    current: number;
+    size: number;
   };
-  message: string;
-}
-
-export interface NutritionNameConfigResult {
-  success: boolean;
-  code: number;
-  data: string[];
   message: string;
 }
 
@@ -188,8 +162,9 @@ export interface UpdateUserStatusPayload {
 
 export interface SaveUserNutritionTargetPayload {
   id: number;
+  nutritionId: number;
   nutritionName: string;
-  targetValue: string;
+  value: string;
 }
 
 export interface SystemNutritionListParams {
@@ -202,7 +177,7 @@ export interface SystemNutritionItem {
   id: number;
   name: string;
   defaultValue: string;
-  createdAt: string;
+  createTime: string;
   creatorName: string;
 }
 
@@ -342,8 +317,10 @@ export interface SystemConfigDetailResult {
   message: string;
 }
 
-export const getUserList = (params: UserListParams) => {
-  return http.request<UserListResult>("get", "/system/user/list", { params });
+export const getUserList = (data: UserListParams) => {
+  return http.request<UserListResult>("post", baseUrlApi("user/page"), {
+    data
+  });
 };
 
 export const getUserShareList = (params: UserShareListParams) => {
@@ -358,30 +335,13 @@ export const getUserDietList = (params: UserDietListParams) => {
   });
 };
 
-export const getUserNutritionList = (params: UserNutritionListParams) => {
-  return http.request<UserNutritionListResult>(
-    "get",
-    "/system/user/nutrition-list",
-    {
-      params
-    }
-  );
-};
-
 export const getUserNutritionTargets = (userId: number) => {
   return http.request<UserNutritionTargetListResult>(
-    "get",
-    "/system/user/nutrition-targets",
+    "post",
+    baseUrlApi("userNutrition/page"),
     {
-      params: { userId }
+      data: { userId }
     }
-  );
-};
-
-export const getNutritionNameConfig = () => {
-  return http.request<NutritionNameConfigResult>(
-    "get",
-    "system/param/nutrition-names"
   );
 };
 
@@ -390,7 +350,7 @@ export const saveUserNutritionTarget = (
 ) => {
   return http.request<UserActionResult>(
     "post",
-    "/system/user/nutrition-target/save",
+    baseUrlApi("userNutrition/save"),
     {
       data
     }
@@ -400,7 +360,7 @@ export const saveUserNutritionTarget = (
 export const deleteUserNutritionTarget = (id: number) => {
   return http.request<UserActionResult>(
     "post",
-    "/system/user/nutrition-target/delete",
+    baseUrlApi("userNutrition/delete"),
     {
       data: { id }
     }
@@ -410,22 +370,54 @@ export const deleteUserNutritionTarget = (id: number) => {
 export const getUserShareDetail = (shareId: number) => {
   return http.request<UserShareDetailResult>(
     "get",
-    "/system/user/share-detail",
+    baseUrlApi("share/detail"),
     {
-      params: { shareId }
+      data: { shareId }
+    }
+  );
+};
+
+export const resetUserPassword = (data: ResetPasswordPayload) => {
+  return http.request<UserActionResult>(
+    "post",
+    baseUrlApi("user/reset-password"),
+    {
+      data
+    }
+  );
+};
+
+export const updateUserStatus = (data: UpdateUserStatusPayload) => {
+  return http.request<UserActionResult>(
+    "post",
+    baseUrlApi("user/update-status"),
+    {
+      data
     }
   );
 };
 
 export const deleteUserShare = (shareId: number) => {
-  return http.request<UserActionResult>("post", "/system/user/share-delete", {
+  return http.request<UserActionResult>("post", baseUrlApi("share/delete"), {
     data: { shareId }
   });
 };
 
 export const deleteUserDiet = (dietId: number) => {
-  return http.request<UserActionResult>("post", "/system/user/diet-delete", {
+  return http.request<UserActionResult>("post", baseUrlApi("diet/delete"), {
     data: { dietId }
+  });
+};
+
+export const getUserDetail = (userId: number) => {
+  return http.request<UserDetailResult>("get", baseUrlApi("user/detail"), {
+    params: { userId }
+  });
+};
+
+export const saveUser = (data: UserSavePayload) => {
+  return http.request<UserActionResult>("post", baseUrlApi("user/save"), {
+    data
   });
 };
 

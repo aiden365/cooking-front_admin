@@ -11,10 +11,17 @@ export interface RecipeListParams {
   checkStatus?: RecipeVerifyStatus | "";
 }
 
-export interface RecipeAppraiseListParams {
+export interface DishScorePageParams {
   pageNum: number;
   pageSize: number;
-  keyword?: string;
+  search?: string;
+}
+
+export interface UserAppraisePageParams {
+  pageNum: number;
+  pageSize: number;
+  dishId: number;
+  search?: string;
 }
 
 export interface RecipeSeasoningItem {
@@ -62,20 +69,23 @@ export interface RecipeDetail extends RecipeItem {
   stepList: RecipeStepItem[];
 }
 
-export interface RecipeAppraiseUserItem {
+export interface UserAppraiseItem {
   id: number;
   username: string;
-  operationScore: number;
-  matchingScore: number;
+  manipulationScore: number;
+  equalScore: number;
   satisfactionScore: number;
+  updateTime: string;
 }
 
 export interface RecipeAppraiseItem {
-  recipeId: number;
-  recipeName: string;
-  operationScore: number;
-  matchingScore: number;
-  satisfactionScore: number;
+  id: number;
+  dishId: number;
+  userName: string;
+  dishName: string;
+  manipulationScoreAvg: number;
+  equalScoreAvg: number;
+  satisfactionScoreAvg: number;
 }
 
 export interface CreateRecipePayload {
@@ -106,7 +116,7 @@ export interface RecipeListResult {
   message: string;
 }
 
-export interface RecipeAppraiseListResult {
+export interface DishScorePageResult {
   success: boolean;
   code: number;
   data: {
@@ -118,12 +128,14 @@ export interface RecipeAppraiseListResult {
   message: string;
 }
 
-export interface RecipeAppraiseDetailResult {
+export interface UserAppraiseResult {
   success: boolean;
   code: number;
   data: {
-    recipeName: string;
-    list: RecipeAppraiseUserItem[];
+    records: UserAppraiseItem[];
+    total: number;
+    current: number;
+    size: number;
   };
   message: string;
 }
@@ -136,6 +148,13 @@ export interface RecipeDetailResult {
 }
 
 export interface RecipeDeleteResult {
+  success: boolean;
+  code: number;
+  data: null;
+  message: string;
+}
+
+export interface AppraisesDeleteResult {
   success: boolean;
   code: number;
   data: null;
@@ -157,22 +176,22 @@ export const getRecipeList = (data: RecipeListParams) => {
   });
 };
 
-export const getRecipeAppraiseList = (params: RecipeAppraiseListParams) => {
-  return http.request<RecipeAppraiseListResult>(
-    "get",
-    "/recipe/appraise/list",
+export const getDishScorePage = (data: DishScorePageParams) => {
+  return http.request<DishScorePageResult>(
+    "post",
+    baseUrlApi("appraises/dishScorePage"),
     {
-      params
+      data
     }
   );
 };
 
-export const getRecipeAppraiseDetail = (recipeId: number) => {
-  return http.request<RecipeAppraiseDetailResult>(
-    "get",
-    "/recipe/appraise/detail",
+export const getUserAppraisePage = (data: UserAppraisePageParams) => {
+  return http.request<UserAppraiseResult>(
+    "post",
+    baseUrlApi("appraises/page"),
     {
-      params: { recipeId }
+      data
     }
   );
 };
@@ -181,6 +200,16 @@ export const resetRecipeAppraise = (recipeId: number) => {
   return http.request<RecipeDeleteResult>("post", "/recipe/appraise/reset", {
     data: { recipeId }
   });
+};
+
+export const deleteAppraises = (id: number) => {
+  return http.request<AppraisesDeleteResult>(
+    "post",
+    baseUrlApi("appraises/delete"),
+    {
+      data: { id }
+    }
+  );
 };
 
 export const getRecipeDetail = (dishId: number) => {

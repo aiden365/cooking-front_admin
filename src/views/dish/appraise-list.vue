@@ -2,19 +2,20 @@
 import { onMounted, reactive, ref } from "vue";
 import { ElMessage } from "element-plus";
 import {
-  getRecipeAppraiseDetail,
-  getRecipeAppraiseList,
+  getUserAppraisePage,
+  getDishScorePage,
   resetRecipeAppraise,
+  deleteAppraises,
   type RecipeAppraiseItem,
-  type RecipeAppraiseListParams,
-  type RecipeAppraiseUserItem
+  type DishScorePageParams,
+  type UserAppraiseItem
 } from "@/api/recipe";
 
 defineOptions({
   name: "DishAppraiseList"
 });
 
-interface SearchForm {
+interface DishSearchForm {
   keyword: string;
 }
 
@@ -22,16 +23,23 @@ const loading = ref(false);
 const detailLoading = ref(false);
 const dialogVisible = ref(false);
 const dialogTitle = ref("");
-const appraiseList = ref<RecipeAppraiseItem[]>([]);
-const detailList = ref<RecipeAppraiseUserItem[]>([]);
+const dishScoreList = ref<RecipeAppraiseItem[]>([]);
+const userAppraiseList = ref<UserAppraiseItem[]>([]);
+const currentDishId = ref(-1);
 
-const pagination = reactive({
+const dishPagination = reactive({
   pageNum: 1,
   pageSize: 7,
   total: 0
 });
 
-const searchForm = reactive<SearchForm>({
+const appraisesPagination = reactive({
+  pageNum: 1,
+  pageSize: 5,
+  total: 0
+});
+
+const searchForm = reactive<DishSearchForm>({
   keyword: ""
 });
 
@@ -41,51 +49,78 @@ function getScoreTagType(score: number) {
   return "success";
 }
 
-async function loadAppraiseList() {
+async function loadDishScorePage() {
   loading.value = true;
   try {
-    const params: RecipeAppraiseListParams = {
-      pageNum: pagination.pageNum,
-      pageSize: pagination.pageSize,
-      keyword: searchForm.keyword.trim()
+    const params: DishScorePageParams = {
+      pageNum: dishPagination.pageNum,
+      pageSize: dishPagination.pageSize,
+      search: searchForm.keyword.trim()
     };
-    const result = await getRecipeAppraiseList(params);
-    appraiseList.value = result.data.records;
-    pagination.total = result.data.total;
+    const result = await getDishScorePage(params);
+    dishScoreList.value = result.data.records;
+    dishPagination.total = result.data.total;
   } finally {
     loading.value = false;
   }
 }
 
 function handleSearch() {
-  pagination.pageNum = 1;
-  loadAppraiseList();
+  dishPagination.pageNum = 1;
+  loadDishScorePage();
 }
 
-async function handleDetail(row: RecipeAppraiseItem) {
+async function loadUserAppraisePage() {
   detailLoading.value = true;
-  dialogVisible.value = true;
-  dialogTitle.value = `${row.recipeName} - 用户评价详情`;
   try {
-    const result = await getRecipeAppraiseDetail(row.recipeId);
-    detailList.value = result.data.list;
+    const result = await getUserAppraisePage({
+      dishId: currentDishId.value,
+      pageNum: appraisesPagination.pageNum,
+      pageSize: appraisesPagination.pageSize
+    });
+    userAppraiseList.value = result.data.records;
+    appraisesPagination.total = result.data.total;
   } finally {
     detailLoading.value = false;
   }
 }
 
-async function handleReset(row: RecipeAppraiseItem) {
-  await resetRecipeAppraise(row.recipeId);
-  ElMessage.success(`已触发「${row.recipeName}」评价重置`);
+async function handleDetail(row: RecipeAppraiseItem) {
+  detailLoading.value = true;
+  dialogVisible.value = true;
+  dialogTitle.value = `${row.dishName} - 用户评价详情`;
+  currentDishId.value = row.dishId;
+  loadUserAppraisePage();
 }
 
-function handleCurrentChange(page: number) {
-  pagination.pageNum = page;
-  loadAppraiseList();
+async function handleReset(row: RecipeAppraiseItem) {
+  await resetRecipeAppraise(row.dishId);
+  ElMessage.success(`已触发「${row.dishName}」评价重置`);
+}
+
+async function handleDeleteAppraises(row: RecipeAppraiseItem) {
+  deleteAppraises(row.id).then(e => {
+    if (e.success) {
+      ElMessage.success(`已删除「${row.userName}」的评价`);
+      loadUserAppraisePage();
+    } else {
+      ElMessage.error(`删除「${row.userName}」的评价失败`);
+    }
+  });
+}
+
+function handleDishPageCurrentChange(page: number) {
+  dishPagination.pageNum = page;
+  loadDishScorePage();
+}
+
+function handleAppraisesPageCurrentChange(page: number) {
+  appraisesPagination.pageNum = page;
+  loadUserAppraisePage();
 }
 
 onMounted(() => {
-  loadAppraiseList();
+  loadDishScorePage();
 });
 </script>
 
@@ -111,7 +146,7 @@ onMounted(() => {
     <el-card shadow="never">
       <el-table
         v-loading="loading"
-        :data="appraiseList"
+        :data="dishScoreList"
         stripe
         :header-cell-style="{
           background: 'var(--el-fill-color-light)',
@@ -121,31 +156,34 @@ onMounted(() => {
       >
         <el-table-column
           label="菜名"
-          prop="recipeName"
+          prop="dishName"
           min-width="220"
           show-overflow-tooltip
         />
         <el-table-column label="操作性评分" min-width="160" align="center">
           <template #default="{ row }">
-            <el-tag :type="getScoreTagType(row.operationScore)" effect="dark">
-              {{ row.operationScore.toFixed(1) }}
+            <el-tag
+              :type="getScoreTagType(row.manipulationScoreAvg)"
+              effect="dark"
+            >
+              {{ row.manipulationScoreAvg }}
             </el-tag>
           </template>
         </el-table-column>
         <el-table-column label="匹配度评分" min-width="160" align="center">
           <template #default="{ row }">
-            <el-tag :type="getScoreTagType(row.matchingScore)" effect="dark">
-              {{ row.matchingScore.toFixed(1) }}
+            <el-tag :type="getScoreTagType(row.equalScoreAvg)" effect="dark">
+              {{ row.equalScoreAvg }}
             </el-tag>
           </template>
         </el-table-column>
         <el-table-column label="满意度评分" min-width="160" align="center">
           <template #default="{ row }">
             <el-tag
-              :type="getScoreTagType(row.satisfactionScore)"
+              :type="getScoreTagType(row.satisfactionScoreAvg)"
               effect="dark"
             >
-              {{ row.satisfactionScore.toFixed(1) }}
+              {{ row.satisfactionScoreAvg }}
             </el-tag>
           </template>
         </el-table-column>
@@ -166,47 +204,68 @@ onMounted(() => {
 
       <div class="mt-4 flex justify-end overflow-x-auto">
         <el-pagination
-          v-model:current-page="pagination.pageNum"
-          :page-size="pagination.pageSize"
-          :total="pagination.total"
+          v-model:current-page="dishPagination.pageNum"
+          :page-size="dishPagination.pageSize"
+          :total="dishPagination.total"
           layout="total, prev, pager, next, jumper"
           background
-          @current-change="handleCurrentChange"
+          @current-change="handleDishPageCurrentChange"
         />
       </div>
     </el-card>
 
     <el-dialog v-model="dialogVisible" :title="dialogTitle" width="820px">
-      <el-table v-loading="detailLoading" :data="detailList" border>
-        <el-table-column label="用户名" prop="username" min-width="160" />
-        <el-table-column label="操作性评分" min-width="150" align="center">
+      <el-table v-loading="detailLoading" :data="userAppraiseList" border>
+        <el-table-column label="用户名" prop="userName" min-width="160" />
+        <el-table-column label="操作性评分" min-width="100" align="center">
           <template #default="{ row }">
-            <el-tag :type="getScoreTagType(row.operationScore)" effect="plain">
-              {{ row.operationScore.toFixed(1) }}
+            <el-tag
+              :type="getScoreTagType(row.manipulationScore)"
+              effect="plain"
+            >
+              {{ row.manipulationScore }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="匹配度评分" min-width="150" align="center">
+        <el-table-column label="匹配度评分" min-width="100" align="center">
           <template #default="{ row }">
-            <el-tag :type="getScoreTagType(row.matchingScore)" effect="plain">
-              {{ row.matchingScore.toFixed(1) }}
+            <el-tag :type="getScoreTagType(row.equalScore)" effect="plain">
+              {{ row.equalScore }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="满意度评分" min-width="150" align="center">
+        <el-table-column label="满意度评分" min-width="100" align="center">
           <template #default="{ row }">
             <el-tag
               :type="getScoreTagType(row.satisfactionScore)"
               effect="plain"
             >
-              {{ row.satisfactionScore.toFixed(1) }}
+              {{ row.satisfactionScore }}
             </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="评价时间" prop="updateTime" min-width="160" />
+        <el-table-column label="操作" min-width="100" align="center">
+          <template #default="{ row }">
+            <el-button link type="primary" @click="handleDeleteAppraises(row)"
+              >删除</el-button
+            >
           </template>
         </el-table-column>
         <template #empty>
           <el-empty description="暂无用户评价" />
         </template>
       </el-table>
+      <div class="mt-4 flex justify-end overflow-x-auto">
+        <el-pagination
+          v-model:current-page="appraisesPagination.pageNum"
+          :page-size="appraisesPagination.pageSize"
+          :total="appraisesPagination.total"
+          layout="total, prev, pager, next, jumper"
+          background
+          @current-change="handleAppraisesPageCurrentChange"
+        />
+      </div>
     </el-dialog>
   </div>
 </template>

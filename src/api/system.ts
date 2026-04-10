@@ -1,4 +1,5 @@
 import { http } from "@/utils/http";
+import { baseUrlApi } from "./utils";
 
 export interface UserListParams {
   pageNum: number;
@@ -194,7 +195,7 @@ export interface SaveUserNutritionTargetPayload {
 export interface SystemNutritionListParams {
   pageNum: number;
   pageSize: number;
-  keyword?: string;
+  search?: string;
 }
 
 export interface SystemNutritionItem {
@@ -205,8 +206,10 @@ export interface SystemNutritionItem {
   creatorName: string;
 }
 
-export interface SystemNutritionDetail
-  extends Omit<SystemNutritionItem, "createdAt" | "creatorName"> {}
+export type SystemNutritionDetail = Omit<
+  SystemNutritionItem,
+  "createTime" | "creatorName"
+>;
 
 export interface SystemNutritionSavePayload {
   id?: number;
@@ -503,40 +506,38 @@ export const updateAdminStatus = (data: UpdateAdminStatusPayload) => {
   });
 };
 
-export const getSystemNutritionList = (params: SystemNutritionListParams) => {
+export const getSystemNutritionList = (data: SystemNutritionListParams) => {
   return http.request<SystemNutritionListResult>(
-    "get",
-    "/system/nutrition-element/list",
-    { params }
-  );
-};
-
-export const getSystemNutritionDetail = (id: number) => {
-  return http.request<SystemNutritionDetailResult>(
-    "get",
-    "/system/nutrition-element/detail",
-    {
-      params: { id }
-    }
-  );
-};
-
-export const saveSystemNutrition = (data: SystemNutritionSavePayload) => {
-  return http.request<UserActionResult>(
     "post",
-    "/system/nutrition-element/save",
+    baseUrlApi("nutrition/page"),
     {
       data
     }
   );
 };
 
+export const getSystemNutritionDetail = (id: number) => {
+  return http.request<SystemNutritionDetailResult>(
+    "post",
+    baseUrlApi("nutrition/detail"),
+    {
+      data: { id }
+    }
+  );
+};
+
+export const saveSystemNutrition = (data: SystemNutritionSavePayload) => {
+  return http.request<UserActionResult>("post", baseUrlApi("nutrition/save"), {
+    data
+  });
+};
+
 export const deleteSystemNutrition = (id: number) => {
   return http.request<UserActionResult>(
     "post",
-    "/system/nutrition-element/delete",
+    baseUrlApi("nutrition/delete"),
     {
-      data: { id }
+      data: { ids: [id] }
     }
   );
 };

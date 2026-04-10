@@ -15,7 +15,7 @@ defineOptions({
 });
 
 interface SearchForm {
-  keyword: string;
+  search: string;
 }
 
 interface NutritionForm {
@@ -39,7 +39,7 @@ const pagination = reactive({
 });
 
 const searchForm = reactive<SearchForm>({
-  keyword: ""
+  search: ""
 });
 
 const nutritionForm = reactive<NutritionForm>({
@@ -58,7 +58,7 @@ async function loadNutritionList() {
     const params: SystemNutritionListParams = {
       pageNum: pagination.pageNum,
       pageSize: pagination.pageSize,
-      keyword: searchForm.keyword.trim()
+      search: searchForm.search.trim()
     };
     const result = await getSystemNutritionList(params);
     nutritionList.value = result.data.records;
@@ -138,7 +138,7 @@ loadNutritionList();
       <el-form inline :model="searchForm" class="flex flex-wrap gap-y-2">
         <el-form-item label="元素名称" class="mb-0!">
           <el-input
-            v-model="searchForm.keyword"
+            v-model="searchForm.search"
             clearable
             placeholder="请输入元素名称"
             class="w-[260px]"
@@ -167,7 +167,7 @@ loadNutritionList();
       >
         <el-table-column label="营养元素" prop="name" min-width="180" />
         <el-table-column label="默认值" prop="defaultValue" min-width="140" />
-        <el-table-column label="创建时间" prop="createdAt" min-width="180" />
+        <el-table-column label="创建时间" prop="createTime" min-width="180" />
         <el-table-column label="创建人" prop="creatorName" min-width="140" />
         <el-table-column
           label="操作"

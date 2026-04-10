@@ -13,10 +13,10 @@ defineOptions({
 });
 
 interface SearchForm {
-  recipeName: string;
-  username: string;
-  date: string;
-  mealTime: 1 | 2 | 3 | "";
+  dishName: string;
+  userName: string;
+  dietDate: string;
+  dietOrder: 1 | 2 | 3 | null;
 }
 
 const loading = ref(false);
@@ -29,13 +29,13 @@ const pagination = reactive({
 });
 
 const searchForm = reactive<SearchForm>({
-  recipeName: "",
-  username: "",
-  date: "",
-  mealTime: ""
+  dishName: "",
+  userName: "",
+  dietOrder: null,
+  dietDate: null
 });
 
-const mealTimeOptions = [
+const dietOrderOptions = [
   { label: "早餐", value: 1 },
   { label: "午餐", value: 2 },
   { label: "晚餐", value: 3 }
@@ -47,10 +47,10 @@ async function loadDietList() {
     const params: UserDietListParams = {
       pageNum: pagination.pageNum,
       pageSize: pagination.pageSize,
-      recipeName: searchForm.recipeName.trim(),
-      username: searchForm.username.trim(),
-      date: searchForm.date,
-      mealTime: searchForm.mealTime
+      dishName: searchForm.dishName.trim(),
+      userName: searchForm.userName.trim(),
+      dietOrder: searchForm.dietOrder,
+      dietDate: searchForm.dietDate
     };
     const result = await getUserDietList(params);
     dietList.value = result.data.records;
@@ -66,8 +66,14 @@ function handleSearch() {
 }
 
 async function handleDelete(row: UserDietItem) {
-  await deleteUserDiet(row.id);
-  ElMessage.success(`已触发「${row.username}」饮食记录删除`);
+  deleteUserDiet(row.id).then(e => {
+    if (e.success) {
+      ElMessage.success(`删除成功`);
+      loadDietList();
+    } else {
+      ElMessage.error(e.message);
+    }
+  });
 }
 
 function handleCurrentChange(page: number) {
@@ -75,8 +81,8 @@ function handleCurrentChange(page: number) {
   loadDietList();
 }
 
-function formatMealTime(mealTime: 1 | 2 | 3) {
-  return mealTime === 1 ? "早餐" : mealTime === 2 ? "午餐" : "晚餐";
+function formatMealTime(dietDate: 1 | 2 | 3) {
+  return dietDate === 1 ? "早餐" : dietDate === 2 ? "午餐" : "晚餐";
 }
 
 onMounted(() => {
@@ -88,27 +94,27 @@ onMounted(() => {
   <div class="space-y-4">
     <el-card shadow="never">
       <el-form inline :model="searchForm" class="flex flex-wrap gap-y-2">
-        <el-form-item label="菜品名称" class="mb-0!">
-          <el-input
-            v-model="searchForm.recipeName"
-            clearable
-            placeholder="请输入菜品名称"
-            class="w-[220px]"
-            @keyup.enter="handleSearch"
-          />
-        </el-form-item>
         <el-form-item label="用户姓名" class="mb-0!">
           <el-input
-            v-model="searchForm.username"
+            v-model="searchForm.userName"
             clearable
             placeholder="请输入用户姓名"
             class="w-[220px]"
             @keyup.enter="handleSearch"
           />
         </el-form-item>
+        <el-form-item label="菜品名称" class="mb-0!">
+          <el-input
+            v-model="searchForm.dishName"
+            clearable
+            placeholder="请输入菜品名称"
+            class="w-[220px]"
+            @keyup.enter="handleSearch"
+          />
+        </el-form-item>
         <el-form-item label="日期" class="mb-0!">
           <el-date-picker
-            v-model="searchForm.date"
+            v-model="searchForm.dietDate"
             type="date"
             value-format="YYYY-MM-DD"
             placeholder="请选择日期"
@@ -117,14 +123,14 @@ onMounted(() => {
         </el-form-item>
         <el-form-item label="餐次" class="mb-0!">
           <el-select
-            v-model="searchForm.mealTime"
+            v-model="searchForm.dietOrder"
             placeholder="请选择餐次"
             class="w-[180px]"
             style="width: 150px"
           >
             <el-option label="全部餐次" value="" />
             <el-option
-              v-for="option in mealTimeOptions"
+              v-for="option in dietOrderOptions"
               :key="option.value"
               :label="option.label"
               :value="option.value"
@@ -148,14 +154,15 @@ onMounted(() => {
           fontWeight: '600'
         }"
       >
-        <el-table-column label="用户名" prop="username" min-width="140" />
-        <el-table-column label="菜品" prop="recipeName" min-width="180" />
-        <el-table-column label="日期" prop="date" min-width="140" />
+        <el-table-column label="用户名" prop="userName" min-width="140" />
+        <el-table-column label="菜品" prop="dishName" min-width="180" />
+        <el-table-column label="日期" prop="dietDate" min-width="140" />
         <el-table-column label="餐次" min-width="120" align="center">
           <template #default="{ row }">
-            {{ formatMealTime(row.mealTime) }}
+            {{ formatMealTime(row.dietOrder) }}
           </template>
         </el-table-column>
+
         <el-table-column
           label="操作"
           fixed="right"

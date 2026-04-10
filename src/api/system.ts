@@ -17,10 +17,10 @@ export interface UserShareListParams {
 export interface UserDietListParams {
   pageNum: number;
   pageSize: number;
-  username?: string;
-  recipeName?: string;
-  date?: string;
-  mealTime?: 1 | 2 | 3 | "";
+  userName?: string;
+  dishName?: string;
+  dietDate?: string;
+  dietOrder?: 1 | 2 | 3 | null;
 }
 
 export interface UserNutritionListParams {
@@ -53,10 +53,10 @@ export interface UserShareItem {
 
 export interface UserDietItem {
   id: number;
-  username: string;
-  recipeName: string;
-  date: string;
-  mealTime: 1 | 2 | 3;
+  userName: string;
+  dishName: string;
+  dietDate: string;
+  dietOrder: 1 | 2 | 3;
 }
 
 export interface UserNutritionTargetItem {
@@ -327,9 +327,9 @@ export const getUserShareList = (data: UserShareListParams) => {
   });
 };
 
-export const getUserDietList = (params: UserDietListParams) => {
-  return http.request<UserDietListResult>("get", "/system/user/diet-list", {
-    params
+export const getUserDietList = (data: UserDietListParams) => {
+  return http.request<UserDietListResult>("post", baseUrlApi("diet/page"), {
+    data
   });
 };
 

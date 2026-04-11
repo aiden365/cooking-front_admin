@@ -1,21 +1,48 @@
 <script setup lang="ts">
-import { ref, markRaw } from "vue";
+import { computed, markRaw, onMounted, ref } from "vue";
+import { ElMessage } from "element-plus";
 import ReCol from "@/components/ReCol";
 import { useDark, randomGradient } from "./utils";
-
 import { ReNormalCountTo } from "@/components/ReCountTo";
 import { useRenderFlicker } from "@/components/ReFlicker";
 import { ChartBar, ChartLine, ChartRound } from "./components/charts";
 import Segmented, { type OptionsType } from "@/components/ReSegmented";
-import { chartData, barChartData, latestNewsData } from "./data";
+import {
+  getDishCheckData2,
+  getDishDynamicsData,
+  getIndexStatistics,
+  type DishDynamicsItem
+} from "@/api/index";
+import GroupLine from "~icons/ri/group-line";
+import Smile from "~icons/ri/star-smile-line";
+import Dish from "~icons/ep/dish";
+import Share from "~icons/ep/share";
 
 defineOptions({
   name: "Welcome"
 });
 
+interface OverviewCardItem {
+  icon: object;
+  bgColor: string;
+  color: string;
+  duration: number;
+  name: string;
+  value: number;
+  percent: string;
+  data: number[];
+}
+
+interface OverviewBarItem {
+  requireData: number[];
+  questionData: number[];
+}
+
 const { isDark } = useDark();
 
-let curWeek = ref(1); // 0上周、1本周
+const loading = ref(false);
+const curWeek = ref(1);
+
 const optionsBasis: Array<OptionsType> = [
   {
     label: "上周"
@@ -24,10 +51,147 @@ const optionsBasis: Array<OptionsType> = [
     label: "本周"
   }
 ];
+
+const chartData = ref<OverviewCardItem[]>([
+  {
+    icon: GroupLine,
+    bgColor: "#effaff",
+    color: "#41b6ff",
+    duration: 2200,
+    name: "用户数量",
+    value: 0,
+    percent: "--",
+    data: []
+  },
+  {
+    icon: Dish,
+    bgColor: "#fff5f4",
+    color: "#e85f33",
+    duration: 1600,
+    name: "菜谱数量",
+    value: 0,
+    percent: "--",
+    data: []
+  },
+  {
+    icon: Share,
+    bgColor: "#eff8f4",
+    color: "#26ce83",
+    duration: 1500,
+    name: "分享数量",
+    value: 0,
+    percent: "--",
+    data: []
+  },
+  {
+    icon: Smile,
+    bgColor: "#f6f4fe",
+    color: "#7846e5",
+    duration: 300,
+    name: "综合评分",
+    value: 0,
+    percent: "",
+    data: [100]
+  }
+]);
+
+const barChartData = ref<OverviewBarItem[]>([
+  {
+    requireData: [],
+    questionData: []
+  },
+  {
+    requireData: [],
+    questionData: []
+  }
+]);
+
+const latestNewsData = ref<DishDynamicsItem[]>([]);
+
+const timelineList = computed(() => latestNewsData.value.slice(0, 10));
+
+function parsePercentValue(value: string) {
+  return Number(String(value).replace("%", "")) || 0;
+}
+
+async function loadWelcomeData() {
+  loading.value = true;
+  try {
+    const [statisticsRes, dishCheckRes, dynamicsRes] = await Promise.all([
+      getIndexStatistics(),
+      getDishCheckData2(),
+      getDishDynamicsData()
+    ]);
+
+    chartData.value = [
+      {
+        icon: GroupLine,
+        bgColor: "#effaff",
+        color: "#41b6ff",
+        duration: 2200,
+        name: "用户数量",
+        value: statisticsRes.data.userStatistics.userTotalCount,
+        percent: statisticsRes.data.userStatistics.percentRate,
+        data: statisticsRes.data.userStatistics.lastSevenCount
+      },
+      {
+        icon: Dish,
+        bgColor: "#fff5f4",
+        color: "#e85f33",
+        duration: 1600,
+        name: "菜谱数量",
+        value: statisticsRes.data.dishStatistics.dishTotalCount,
+        percent: statisticsRes.data.dishStatistics.percentRate,
+        data: statisticsRes.data.dishStatistics.lastSevenCount
+      },
+      {
+        icon: Share,
+        bgColor: "#eff8f4",
+        color: "#26ce83",
+        duration: 1500,
+        name: "分享数量",
+        value: statisticsRes.data.useShareStatistics.shareTotalCount,
+        percent: statisticsRes.data.useShareStatistics.percentRate,
+        data: statisticsRes.data.useShareStatistics.lastSevenCount
+      },
+      {
+        icon: Smile,
+        bgColor: "#f6f4fe",
+        color: "#7846e5",
+        duration: 300,
+        name: "综合评分",
+        value: parsePercentValue(statisticsRes.data.dishTotalScore),
+        percent: statisticsRes.data.dishTotalScore,
+        data: [parsePercentValue(statisticsRes.data.dishTotalScore)]
+      }
+    ];
+
+    barChartData.value = [
+      {
+        requireData: dishCheckRes.data.lastWeekData.aigcDishCount,
+        questionData: dishCheckRes.data.lastWeekData.checkDishCount
+      },
+      {
+        requireData: dishCheckRes.data.currentWeekData.aigcDishCount,
+        questionData: dishCheckRes.data.currentWeekData.checkDishCount
+      }
+    ];
+
+    latestNewsData.value = dynamicsRes.data;
+  } catch (_error) {
+    ElMessage.error("首页统计数据加载失败");
+  } finally {
+    loading.value = false;
+  }
+}
+
+onMounted(() => {
+  loadWelcomeData();
+});
 </script>
 
 <template>
-  <div>
+  <div v-loading="loading">
     <el-row :gutter="24" justify="space-around">
       <re-col
         v-for="(item, index) in chartData"
@@ -74,10 +238,19 @@ const optionsBasis: Array<OptionsType> = [
               <ReNormalCountTo
                 :duration="item.duration"
                 :fontSize="'1.6em'"
-                :startVal="1"
+                :startVal="0"
                 :endVal="item.value"
               />
-              <p class="font-medium text-green-500">{{ item.percent }}</p>
+              <p
+                class="font-medium"
+                :class="
+                  String(item.percent).startsWith('-')
+                    ? 'text-red-500'
+                    : 'text-green-500'
+                "
+              >
+                {{ item.percent }}
+              </p>
             </div>
             <ChartLine
               v-if="item.data.length > 1"
@@ -114,8 +287,8 @@ const optionsBasis: Array<OptionsType> = [
           </div>
           <div class="flex justify-between items-start mt-3">
             <ChartBar
-              :requireData="barChartData[curWeek].requireData"
-              :questionData="barChartData[curWeek].questionData"
+              :requireData="barChartData[curWeek]?.requireData ?? []"
+              :questionData="barChartData[curWeek]?.questionData ?? []"
             />
           </div>
         </el-card>
@@ -145,7 +318,7 @@ const optionsBasis: Array<OptionsType> = [
           <el-scrollbar max-height="373" class="mt-3">
             <el-timeline>
               <el-timeline-item
-                v-for="(item, index) in latestNewsData"
+                v-for="(item, index) in timelineList"
                 :key="index"
                 center
                 placement="top"
@@ -158,11 +331,11 @@ const optionsBasis: Array<OptionsType> = [
                     })
                   )
                 "
-                :timestamp="item.date"
+                :timestamp="item.day"
               >
                 <p class="text-text_color_regular text-sm">
                   {{
-                    `AI生成 ${item.aicgNumber} 条菜谱，经人工校验${item.checkNumber} 条`
+                    `AI生成 ${item.aigcCount} 条菜谱，经人工校验${item.checkCount} 条`
                   }}
                 </p>
               </el-timeline-item>
@@ -178,22 +351,18 @@ const optionsBasis: Array<OptionsType> = [
 :deep(.el-card) {
   --el-card-border-color: none;
 
-  /* 解决概率进度条宽度 */
   .el-progress--line {
     width: 85%;
   }
 
-  /* 解决概率进度条字体大小 */
   .el-progress-bar__innerText {
     font-size: 15px;
   }
 
-  /* 隐藏 el-scrollbar 滚动条 */
   .el-scrollbar__bar {
     display: none;
   }
 
-  /* el-timeline 每一项上下、左右边距 */
   .el-timeline-item {
     margin: 0 6px;
   }

@@ -192,9 +192,9 @@ onMounted(() => {
             <el-button link type="primary" @click="handleDetail(row)"
               >详情</el-button
             >
-            <el-button link type="danger" @click="handleReset(row)"
+<!--            <el-button link type="danger" @click="handleReset(row)"
               >重置</el-button
-            >
+            >-->
           </template>
         </el-table-column>
         <template #empty>

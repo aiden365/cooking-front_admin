@@ -67,6 +67,10 @@ const activeStep = ref(0);
 const submitting = ref(false);
 const coverUploading = ref(false);
 const coverPreviewUrl = ref("");
+const stepImageUploading = ref(false);
+const stepImagePreviewUrl = ref("");
+const stepPreviewVisible = ref(false);
+const stepPreviewImage = ref("");
 const dishInfoFormRef = ref<FormInstance>();
 
 const stepTitles = ["菜品信息", "调料信息", "食材信息", "制作步骤", "完成"];
@@ -250,11 +254,22 @@ const recipeStepDialogTitle = computed(() =>
 const coverDisplayUrl = computed(
   () => coverPreviewUrl.value || getUploadedFileUrl(dishInfoForm.imgPath)
 );
+const stepImageDisplayUrl = computed(
+  () =>
+    stepImagePreviewUrl.value ||
+    getUploadedFileUrl(recipeStepDialogForm.stepImage)
+);
 
 function revokeCoverPreviewUrl() {
   if (!coverPreviewUrl.value) return;
   URL.revokeObjectURL(coverPreviewUrl.value);
   coverPreviewUrl.value = "";
+}
+
+function revokeStepImagePreviewUrl() {
+  if (!stepImagePreviewUrl.value) return;
+  URL.revokeObjectURL(stepImagePreviewUrl.value);
+  stepImagePreviewUrl.value = "";
 }
 
 const onCoverChange: UploadProps["onChange"] = async (fileItem: UploadFile) => {
@@ -276,6 +291,26 @@ const onCoverChange: UploadProps["onChange"] = async (fileItem: UploadFile) => {
   }
 };
 
+const onStepImageChange: UploadProps["onChange"] = async (fileItem: UploadFile) => {
+  if (!fileItem.raw) return;
+  revokeStepImagePreviewUrl();
+  stepImagePreviewUrl.value = URL.createObjectURL(fileItem.raw);
+  stepImageUploading.value = true;
+
+  try {
+    const result = await uploadFile(fileItem.raw);
+    recipeStepDialogForm.stepImage = result.data;
+    ElMessage.success(result.message || "图片上传成功");
+    await recipeStepDialogRef.value?.validateField("stepImage");
+  } catch (error) {
+    revokeStepImagePreviewUrl();
+    recipeStepDialogForm.stepImage = "";
+    ElMessage.error("图片上传失败，请稍后重试");
+  } finally {
+    stepImageUploading.value = false;
+  }
+};
+
 function resetSeasoningDialogForm() {
   seasoningDialogForm.id = null;
   seasoningDialogForm.editingIndex = null;
@@ -292,6 +327,7 @@ function resetIngredientDialogForm() {
 }
 
 function resetRecipeStepDialogForm() {
+  revokeStepImagePreviewUrl();
   recipeStepDialogForm.id = null;
   recipeStepDialogForm.editingIndex = null;
   recipeStepDialogForm.sort = null;
@@ -334,6 +370,7 @@ function openIngredientDialog(item?: RecipeIngredientItem) {
 }
 
 function openRecipeStepDialog(item?: RecipeStepItem) {
+  revokeStepImagePreviewUrl();
   if (item) {
     const editingIndex = recipeSteps.value.indexOf(item);
     recipeStepDialogForm.editingIndex = editingIndex > -1 ? editingIndex : null;
@@ -345,6 +382,23 @@ function openRecipeStepDialog(item?: RecipeStepItem) {
     resetRecipeStepDialogForm();
   }
   recipeStepDialogVisible.value = true;
+}
+
+function closeRecipeStepDialog() {
+  recipeStepDialogVisible.value = false;
+  stepImageUploading.value = false;
+  resetRecipeStepDialogForm();
+}
+
+function getStepImageUrl(path?: string) {
+  return getUploadedFileUrl(path);
+}
+
+function previewStepImage(path?: string) {
+  const imageUrl = getStepImageUrl(path);
+  if (!imageUrl) return;
+  stepPreviewImage.value = imageUrl;
+  stepPreviewVisible.value = true;
 }
 
 async function saveSeasoning() {
@@ -538,6 +592,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   revokeCoverPreviewUrl();
+  revokeStepImagePreviewUrl();
 });
 </script>
 
@@ -728,10 +783,23 @@ onBeforeUnmount(() => {
           />
           <el-table-column
             label="示例图片"
-            prop="stepImage"
             min-width="260"
-            show-overflow-tooltip
-          />
+            align="center"
+          >
+            <template #default="{ row }">
+              <span v-if="!row.stepImage" class="text-text_color_placeholder">
+                暂未上传
+              </span>
+              <el-image
+                v-else
+                :src="getStepImageUrl(row.stepImage)"
+                fit="cover"
+                class="h-[72px] w-[108px] cursor-pointer rounded-md"
+                :preview-src-list="[]"
+                @click="previewStepImage(row.stepImage)"
+              />
+            </template>
+          </el-table-column>
           <el-table-column label="操作" width="180" align="center">
             <template #default="{ row }">
               <el-button link type="primary" @click="openRecipeStepDialog(row)"
@@ -877,18 +945,38 @@ onBeforeUnmount(() => {
           />
         </el-form-item>
         <el-form-item label="示例图片" prop="stepImage">
-          <el-input
-            v-model="recipeStepDialogForm.stepImage"
-            type="textarea"
-            :rows="3"
-            placeholder="请输入示例图片地址或说明"
-          />
+          <el-upload
+            class="w-full"
+            drag
+            accept="image/*"
+            :auto-upload="false"
+            :show-file-list="false"
+            :disabled="stepImageUploading"
+            :on-change="onStepImageChange"
+          >
+            <img
+              v-if="stepImageDisplayUrl"
+              :src="stepImageDisplayUrl"
+              alt="步骤示例图片预览"
+              class="h-40 w-40 rounded-lg object-cover bsort bsort-solid bsort-[#dcdfe6]"
+            />
+            <div class="space-y-2">
+
+              <div class="text-sm text-text_color_regular">
+                {{ stepImageUploading ? "图片上传中..." : "点击上传步骤示例图" }}
+              </div>
+            </div>
+          </el-upload>
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="recipeStepDialogVisible = false">取消</el-button>
+        <el-button @click="closeRecipeStepDialog">取消</el-button>
         <el-button type="primary" @click="saveRecipeStep">保存</el-button>
       </template>
+    </el-dialog>
+
+    <el-dialog v-model="stepPreviewVisible" width="720px" title="示例图片预览">
+      <img :src="stepPreviewImage" alt="示例图片预览" class="w-full rounded-lg" />
     </el-dialog>
   </div>
 </template>

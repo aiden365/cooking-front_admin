@@ -6,7 +6,7 @@ export default {
     rank: 1
   },
   children: [
-    {
+    /*{
       path: "/system/admin-list",
       name: "AdminList",
       component: () => import("@/views/system/admin-list.vue"),
@@ -15,7 +15,7 @@ export default {
         showParent: true,
         showLink: false
       }
-    },
+    },*/
     {
       path: "/system/config-list",
       name: "ConfigList",

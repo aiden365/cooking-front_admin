@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import {
   ElMessage,
@@ -17,6 +17,7 @@ import {
   type RecipeStepItem,
   type RecipeDetail
 } from "@/api/recipe";
+import { getUploadedFileUrl, uploadFile } from "@/api/file";
 
 defineOptions({
   name: "DishSave"
@@ -64,6 +65,8 @@ const router = useRouter();
 const dishId = computed(() => Number(route.params.id));
 const activeStep = ref(0);
 const submitting = ref(false);
+const coverUploading = ref(false);
+const coverPreviewUrl = ref("");
 const dishInfoFormRef = ref<FormInstance>();
 
 const stepTitles = ["菜品信息", "调料信息", "食材信息", "制作步骤", "完成"];
@@ -244,9 +247,33 @@ const recipeStepDialogTitle = computed(() =>
   recipeStepDialogForm.editingIndex !== null ? "编辑制作步骤" : "添加制作步骤"
 );
 
-const onCoverChange: UploadProps["onChange"] = (uploadFile: UploadFile) => {
-  if (!uploadFile.raw) return;
-  dishInfoForm.imgPath = URL.createObjectURL(uploadFile.raw);
+const coverDisplayUrl = computed(
+  () => coverPreviewUrl.value || getUploadedFileUrl(dishInfoForm.imgPath)
+);
+
+function revokeCoverPreviewUrl() {
+  if (!coverPreviewUrl.value) return;
+  URL.revokeObjectURL(coverPreviewUrl.value);
+  coverPreviewUrl.value = "";
+}
+
+const onCoverChange: UploadProps["onChange"] = async (fileItem: UploadFile) => {
+  if (!fileItem.raw) return;
+  revokeCoverPreviewUrl();
+  coverPreviewUrl.value = URL.createObjectURL(fileItem.raw);
+  coverUploading.value = true;
+
+  try {
+    const result = await uploadFile(fileItem.raw);
+    dishInfoForm.imgPath = result.data;
+    ElMessage.success(result.message || "图片上传成功");
+  } catch (error) {
+    revokeCoverPreviewUrl();
+    dishInfoForm.imgPath = "";
+    ElMessage.error("图片上传失败，请稍后重试");
+  } finally {
+    coverUploading.value = false;
+  }
 };
 
 function resetSeasoningDialogForm() {
@@ -490,6 +517,7 @@ async function loadRecipeDetail() {
   try {
     if (dishId.value) {
       const result = await getRecipeDetail(dishId.value);
+      revokeCoverPreviewUrl();
       dishInfoForm.id = result.data.id;
       dishInfoForm.name = result.data.name;
       dishInfoForm.takeTimes = result.data.takeTimes;
@@ -506,6 +534,10 @@ async function loadRecipeDetail() {
 
 onMounted(() => {
   loadRecipeDetail();
+});
+
+onBeforeUnmount(() => {
+  revokeCoverPreviewUrl();
 });
 </script>
 
@@ -560,25 +592,23 @@ onMounted(() => {
             accept="image/*"
             :auto-upload="false"
             :show-file-list="false"
+            :disabled="coverUploading"
             :on-change="onCoverChange"
           >
-            <div class="space-y-2">
-              <IconifyIconOnline
-                icon="ep:upload-filled"
-                class="text-[24px] text-primary"
-              />
-              <div class="text-sm text-text_color_regular">
-                点击或拖拽上传菜品图片
-              </div>
-            </div>
-          </el-upload>
-          <div v-if="dishInfoForm.imgPath" class="mt-4">
             <img
-              :src="dishInfoForm.imgPath"
+              v-if="coverDisplayUrl"
+              :src="coverDisplayUrl"
               alt="菜品图片预览"
               class="h-40 w-40 rounded-lg object-cover bsort bsort-solid bsort-[#dcdfe6]"
             />
-          </div>
+            <div class="space-y-2">
+              <div class="text-sm text-text_color_regular">
+                {{
+                  coverUploading ? "图片上传中..." : "点击上传菜品图片"
+                }}
+              </div>
+            </div>
+          </el-upload>
         </el-form-item>
       </el-form>
 

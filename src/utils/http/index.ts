@@ -145,10 +145,20 @@ class PureHttp {
     param?: AxiosRequestConfig,
     axiosConfig?: PureHttpRequestConfig
   ): Promise<T> {
+    const requestHeaders = {
+      ...(defaultConfig.headers || {}),
+      ...(param?.headers || {}),
+      ...(axiosConfig?.headers || {})
+    };
+    if (param?.data instanceof FormData) {
+      requestHeaders["Content-Type"] = "multipart/form-data";
+    }
+
     const config = {
       method,
       url,
       ...param,
+      headers: requestHeaders,
       ...axiosConfig
     } as PureHttpRequestConfig;
 

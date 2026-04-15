@@ -170,6 +170,23 @@ export interface RecipeCreateResult {
   message: string;
 }
 
+export interface DishLabelItem {
+  id: number;
+  labelName: string;
+}
+
+export interface DishLabelListResult {
+  success: boolean;
+  code: number;
+  data: DishLabelItem[];
+  message: string;
+}
+
+export interface DishLabelActionPayload {
+  dishId: number;
+  labelId: number;
+}
+
 export const getRecipeList = (data: RecipeListParams) => {
   return http.request<RecipeListResult>("post", baseUrlApi("dish/page"), {
     data
@@ -227,5 +244,23 @@ export const createRecipe = (data: CreateRecipePayload) => {
 export const deleteRecipe = (id: number) => {
   return http.request<RecipeDeleteResult>("post", baseUrlApi("dish/delete"), {
     data: { ids: [id] }
+  });
+};
+
+export const getDishLabelList = (dishId: number) => {
+  return http.request<DishLabelListResult>("post", baseUrlApi("dish/labels"), {
+    data: { dishId }
+  });
+};
+
+export const addDishLabel = (data: DishLabelActionPayload) => {
+  return http.request<RecipeDeleteResult>("post", baseUrlApi("dish/addLabel"), {
+    data
+  });
+};
+
+export const deleteDishLabel = (data: DishLabelActionPayload) => {
+  return http.request<RecipeDeleteResult>("post", baseUrlApi("dish/delLabel"), {
+    data
   });
 };

@@ -1,14 +1,23 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import { ElMessage, ElMessageBox } from "element-plus";
 import {
+  addDishLabel,
   deleteRecipe,
+  deleteDishLabel,
+  getDishLabelList,
   getRecipeList,
+  type DishLabelItem,
+  type RecipeCheckStatus,
   type RecipeItem,
-  type RecipeListParams,
-  type RecipeCheckStatus
+  type RecipeListParams
 } from "@/api/recipe";
+import {
+  getLabelList,
+  type LabelItem,
+  type LabelListParams
+} from "@/api/label";
 
 defineOptions({
   name: "DishList"
@@ -19,10 +28,20 @@ interface SearchForm {
   checkStatus: RecipeCheckStatus | "";
 }
 
+interface LabelSearchForm {
+  labelName: string;
+  selectedStatus: "" | "selected" | "unselected";
+}
+
 const router = useRouter();
 const loading = ref(false);
+const tagLoading = ref(false);
 const recipeList = ref<RecipeItem[]>([]);
 const total = ref(0);
+const tagDialogVisible = ref(false);
+const currentDish = ref<RecipeItem | null>(null);
+const dishLabelList = ref<DishLabelItem[]>([]);
+const labelPageList = ref<LabelItem[]>([]);
 
 const defaultPageSize = 7;
 
@@ -31,9 +50,20 @@ const pagination = reactive({
   pageSize: defaultPageSize
 });
 
+const labelPagination = reactive({
+  pageNum: 1,
+  pageSize: defaultPageSize,
+  total: 0
+});
+
 const searchForm = reactive<SearchForm>({
   search: "",
   checkStatus: ""
+});
+
+const labelSearchForm = reactive<LabelSearchForm>({
+  labelName: "",
+  selectedStatus: ""
 });
 
 const statusOptions: Array<{
@@ -44,6 +74,19 @@ const statusOptions: Array<{
   { label: "未校验", value: 1 },
   { label: "已校验", value: 2 }
 ];
+
+const selectedStatusOptions: Array<{
+  label: string;
+  value: LabelSearchForm["selectedStatus"];
+}> = [
+  { label: "全部", value: "" },
+  { label: "已选择", value: "selected" },
+  { label: "未选择", value: "unselected" }
+];
+
+const selectedLabelIds = computed(() =>
+  dishLabelList.value.map(item => item.id)
+);
 
 async function loadRecipeList() {
   loading.value = true;
@@ -59,6 +102,56 @@ async function loadRecipeList() {
     total.value = result.data.total;
   } finally {
     loading.value = false;
+  }
+}
+
+async function loadDishLabels(dishId: number) {
+  const result = await getDishLabelList(dishId);
+  dishLabelList.value = result.data;
+}
+
+function isLabelSelected(labelId: number) {
+  return selectedLabelIds.value.includes(labelId);
+}
+
+async function loadLabelPageList() {
+  tagLoading.value = true;
+  try {
+    const isUnselectedFilter = labelSearchForm.selectedStatus === "unselected";
+    const params: LabelListParams = {
+      pageNum: labelPagination.pageNum,
+      pageSize: labelPagination.pageSize,
+      labelName: labelSearchForm.labelName.trim(),
+      type: 2
+    };
+
+    if (labelSearchForm.selectedStatus === "selected") {
+      params.labelIds = selectedLabelIds.value;
+    }
+    if (isUnselectedFilter) {
+      params.labelIds = null;
+      params.excludeLabelIds = selectedLabelIds.value;
+    }
+
+    const result = await getLabelList(params);
+    let records = result.data.records;
+    let totalCount = result.data.total;
+
+    if (isUnselectedFilter) {
+      const filteredRecords = records.filter(item => !isLabelSelected(item.id));
+      totalCount = filteredRecords.length;
+      const startIndex =
+        (labelPagination.pageNum - 1) * labelPagination.pageSize;
+      records = filteredRecords.slice(
+        startIndex,
+        startIndex + labelPagination.pageSize
+      );
+    }
+
+    labelPageList.value = records;
+    labelPagination.total = totalCount;
+  } finally {
+    tagLoading.value = false;
   }
 }
 
@@ -87,8 +180,66 @@ function handleDetail(row: RecipeItem) {
   router.push(`/dish/detail/${row.id}`);
 }
 
-function handleTag(row: RecipeItem) {
-  ElMessage.info(`菜谱「${row.name}」的标签维护页面待实现`);
+async function handleTag(row: RecipeItem) {
+  currentDish.value = row;
+  tagDialogVisible.value = true;
+  labelSearchForm.labelName = "";
+  labelSearchForm.selectedStatus = "";
+  labelPagination.pageNum = 1;
+  labelPagination.pageSize = defaultPageSize;
+
+  tagLoading.value = true;
+  try {
+    await loadDishLabels(row.id);
+    await loadLabelPageList();
+  } finally {
+    tagLoading.value = false;
+  }
+}
+
+async function handleLabelSearch() {
+  labelPagination.pageNum = 1;
+  await loadLabelPageList();
+}
+
+async function handleLabelReset() {
+  labelSearchForm.labelName = "";
+  labelSearchForm.selectedStatus = "";
+  labelPagination.pageNum = 1;
+  labelPagination.pageSize = defaultPageSize;
+  await loadLabelPageList();
+}
+
+async function refreshDishLabelData() {
+  if (!currentDish.value) return;
+  await loadDishLabels(currentDish.value.id);
+  await loadLabelPageList();
+}
+
+async function handleAddLabel(row: LabelItem) {
+  if (!currentDish.value || isLabelSelected(row.id)) return;
+  await addDishLabel({
+    dishId: currentDish.value.id,
+    labelId: row.id
+  }).then(e => {
+    if (e.success) {
+      ElMessage.success("标签添加成功");
+    } else {
+      ElMessage.error(e.message);
+    }
+  });
+
+  await refreshDishLabelData();
+}
+
+async function handleRemoveLabel(row: LabelItem) {
+  if (!currentDish.value || !isLabelSelected(row.id)) return;
+  await deleteDishLabel({
+    dishId: currentDish.value.id,
+    labelId: row.id
+  });
+  ElMessage.success("标签移除成功");
+  await refreshDishLabelData();
 }
 
 async function handleDelete(row: RecipeItem) {
@@ -122,6 +273,11 @@ function formatStatusTagType(status: RecipeCheckStatus) {
 function handleCurrentChange(page: number) {
   pagination.pageNo = page;
   loadRecipeList();
+}
+
+function handleLabelCurrentChange(page: number) {
+  labelPagination.pageNum = page;
+  loadLabelPageList();
 }
 
 onMounted(() => {
@@ -248,15 +404,6 @@ onMounted(() => {
             </el-tag>
           </template>
         </el-table-column>
-        <!-- <el-table-column label="标签" min-width="200" show-overflow-tooltip>
-          <template #default="{ row }">
-            <div class="flex flex-wrap gap-2">
-              <el-tag v-for="tag in row.tags" :key="tag" effect="plain">
-                {{ tag }}
-              </el-tag>
-            </div>
-          </template>
-        </el-table-column> -->
         <el-table-column
           label="操作"
           fixed="right"
@@ -298,6 +445,123 @@ onMounted(() => {
         />
       </div>
     </el-card>
+
+    <el-dialog
+      v-model="tagDialogVisible"
+      :title="
+        currentDish ? `菜谱标签管理 - ${currentDish.name}` : '菜谱标签管理'
+      "
+      width="900px"
+      destroy-on-close
+    >
+      <div class="space-y-4">
+        <el-card shadow="never">
+          <el-form
+            inline
+            :model="labelSearchForm"
+            class="flex flex-wrap gap-y-2"
+          >
+            <el-form-item label="标签名称" class="mb-0!">
+              <el-input
+                v-model="labelSearchForm.labelName"
+                clearable
+                placeholder="请输入标签名称"
+                class="w-[240px]"
+                @keyup.enter="handleLabelSearch"
+              />
+            </el-form-item>
+            <el-form-item label="是否已选" class="mb-0!">
+              <el-select
+                v-model="labelSearchForm.selectedStatus"
+                placeholder="请选择是否已选"
+                class="w-[180px]"
+                style="width: 160px"
+              >
+                <el-option
+                  v-for="option in selectedStatusOptions"
+                  :key="option.value"
+                  :label="option.label"
+                  :value="option.value"
+                />
+              </el-select>
+            </el-form-item>
+            <el-form-item class="mb-0!">
+              <el-button type="primary" @click="handleLabelSearch">
+                搜索
+              </el-button>
+              <el-button @click="handleLabelReset">重置</el-button>
+            </el-form-item>
+          </el-form>
+        </el-card>
+
+        <el-card shadow="never">
+          <el-table
+            v-loading="tagLoading"
+            :data="labelPageList"
+            stripe
+            class="recipe-table"
+            :header-cell-style="{
+              background: 'var(--el-fill-color-light)',
+              color: 'var(--el-text-color-primary)',
+              fontWeight: '600'
+            }"
+          >
+            <el-table-column
+              label="标签名称"
+              prop="labelName"
+              min-width="260"
+              show-overflow-tooltip
+            />
+            <el-table-column label="是否已选" min-width="120" align="center">
+              <template #default="{ row }">
+                <el-tag
+                  :type="isLabelSelected(row.id) ? 'success' : 'info'"
+                  effect="light"
+                >
+                  {{ isLabelSelected(row.id) ? "已选择" : "未选择" }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" min-width="160" align="center">
+              <template #default="{ row }">
+                <div class="flex items-center justify-center gap-2">
+                  <el-button
+                    link
+                    type="primary"
+                    :disabled="isLabelSelected(row.id)"
+                    @click="handleAddLabel(row)"
+                  >
+                    选择
+                  </el-button>
+                  <el-button
+                    link
+                    type="danger"
+                    :disabled="!isLabelSelected(row.id)"
+                    @click="handleRemoveLabel(row)"
+                  >
+                    移除
+                  </el-button>
+                </div>
+              </template>
+            </el-table-column>
+            <template #empty>
+              <el-empty description="暂无标签数据" />
+            </template>
+          </el-table>
+
+          <div class="mt-4 flex justify-end overflow-x-auto">
+            <el-pagination
+              v-model:current-page="labelPagination.pageNum"
+              :page-size="labelPagination.pageSize"
+              :total="labelPagination.total"
+              layout="total, prev, pager, next, jumper"
+              background
+              @current-change="handleLabelCurrentChange"
+            />
+          </div>
+        </el-card>
+      </div>
+    </el-dialog>
   </div>
 </template>
 

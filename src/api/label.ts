@@ -4,8 +4,9 @@ import { baseUrlApi } from "./utils";
 export interface LabelListParams {
   pageNum: number;
   pageSize: number;
-  search?: string;
-  type: number;
+  labelName?: string;
+  labelIds?: number[];
+  type?: number;
 }
 
 export interface LabelItem {

@@ -54,7 +54,7 @@ async function loadLabelList() {
       pageNum: pagination.pageNum,
       pageSize: pagination.pageSize,
       type: 2,
-      search: searchForm.search.trim()
+      labelName: searchForm.search.trim()
     };
     const result = await getLabelList(params);
     labelList.value = result.data.records;

@@ -7,6 +7,7 @@ import {
   type UserShareItem,
   type UserShareListParams
 } from "@/api/system";
+import { getUploadedFileUrl } from "@/api/file";
 
 defineOptions({
   name: "UserShareList"
@@ -74,6 +75,10 @@ async function handleDelete(row: UserShareItem) {
 function handleCurrentChange(page: number) {
   pagination.pageNum = page;
   loadShareList();
+}
+
+function getShareImageUrl(path?: string) {
+  return getUploadedFileUrl(path);
 }
 
 onMounted(() => {
@@ -175,15 +180,12 @@ onMounted(() => {
           />
         </el-form-item>
         <el-form-item label="分享图片预览">
-          <div v-if="shareDetail" class="space-y-3">
-<!--            <div class="text-sm text-text_color_regular">
-              {{ shareDetail.dishImg }}
-            </div>-->
+          <div v-if="shareDetail.imgPath" class="flex justify-center">
             <el-image
-              :src="shareDetail.dishImg"
+              :src="getShareImageUrl(shareDetail.imgPath)"
               fit="cover"
               class="h-[220px] w-[320px] rounded-lg border border-solid border-[#dcdfe6]"
-              :preview-src-list="[shareDetail.dishImg]"
+              :preview-src-list="[getShareImageUrl(shareDetail.imgPath)]"
               preview-teleported
             />
           </div>

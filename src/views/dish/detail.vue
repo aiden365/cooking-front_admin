@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { getRecipeDetail, type RecipeDetail } from "@/api/recipe";
+import { getUploadedFileUrl } from "@/api/file";
 
 defineOptions({
   name: "DishDetail"
@@ -30,6 +31,10 @@ async function loadRecipeDetail() {
 function handlePreview(image: string) {
   previewImage.value = image;
   previewVisible.value = true;
+}
+
+function getStepImageUrl(path?: string) {
+  return getUploadedFileUrl(path);
 }
 
 onMounted(() => {
@@ -131,11 +136,11 @@ onMounted(() => {
         <el-table-column label="示例图" min-width="180" align="center">
           <template #default="{ row }">
             <el-image
-              :src="row.ima"
+              :src="getStepImageUrl(row.stepImage)"
               fit="cover"
               class="h-[72px] w-[108px] rounded-md cursor-pointer"
               :preview-src-list="[]"
-              @click="handlePreview(row.sampleImage)"
+              @click="handlePreview(getStepImageUrl(row.stepImage))"
             />
           </template>
         </el-table-column>

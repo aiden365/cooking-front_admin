@@ -599,7 +599,7 @@ onBeforeUnmount(() => {
 <template>
   <div class="space-y-4">
     <el-card shadow="never">
-      <el-steps :active="activeStep" finish-status="success" align-center>
+      <el-steps :active="activeStep + 1" finish-status="success" align-center>
         <el-step v-for="title in stepTitles" :key="title" :title="title" />
       </el-steps>
     </el-card>

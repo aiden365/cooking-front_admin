@@ -48,7 +48,7 @@ export interface UserShareItem {
   userName: string;
   dishName: string;
   description: string;
-  dishImg: string;
+  imgPath: string;
 }
 
 export interface UserDietItem {

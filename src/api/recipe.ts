@@ -60,6 +60,7 @@ export interface RecipeItem {
   labelNames: string[];
   createTime: string;
   imgPath: string;
+  videoPath: string;
 }
 
 export interface RecipeDetail extends RecipeItem {
@@ -95,6 +96,7 @@ export interface CreateRecipePayload {
   checkStatus: RecipeCheckStatus;
   tips: string;
   imgPath: string;
+  videoPath: string;
   flavors: Array<Pick<RecipeSeasoningItem, "id" | "flavorName" | "dosage">>;
   materials: Array<
     Pick<RecipeIngredientItem, "id" | "materialName" | "dosage" | "deal">

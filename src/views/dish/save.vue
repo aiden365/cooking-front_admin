@@ -14,8 +14,7 @@ import {
   type CreateRecipePayload,
   type RecipeIngredientItem,
   type RecipeSeasoningItem,
-  type RecipeStepItem,
-  type RecipeDetail
+  type RecipeStepItem
 } from "@/api/recipe";
 import { getUploadedFileUrl, uploadFile } from "@/api/file";
 
@@ -30,6 +29,7 @@ interface DishInfoForm {
   checkStatus: 1 | 2;
   tips: string;
   imgPath: string;
+  videoPath: string;
 }
 
 interface SeasoningDialogForm {
@@ -67,13 +67,22 @@ const activeStep = ref(0);
 const submitting = ref(false);
 const coverUploading = ref(false);
 const coverPreviewUrl = ref("");
+const videoUploading = ref(false);
+const videoPreviewUrl = ref("");
 const stepImageUploading = ref(false);
 const stepImagePreviewUrl = ref("");
 const stepPreviewVisible = ref(false);
 const stepPreviewImage = ref("");
 const dishInfoFormRef = ref<FormInstance>();
 
-const stepTitles = ["菜品信息", "调料信息", "食材信息", "制作步骤", "完成"];
+const stepTitles = [
+  "菜品信息",
+  "调料信息",
+  "食材信息",
+  "制作步骤",
+  "菜谱视频",
+  "完成"
+];
 const fixedPageSize = 5;
 
 const dishInfoForm = reactive<DishInfoForm>({
@@ -82,7 +91,8 @@ const dishInfoForm = reactive<DishInfoForm>({
   takeTimes: "15",
   checkStatus: 1,
   tips: "这是一个测试菜谱",
-  imgPath: ""
+  imgPath: "",
+  videoPath: ""
 });
 
 const dishInfoRules: FormRules<DishInfoForm> = {
@@ -254,6 +264,9 @@ const recipeStepDialogTitle = computed(() =>
 const coverDisplayUrl = computed(
   () => coverPreviewUrl.value || getUploadedFileUrl(dishInfoForm.imgPath)
 );
+const videoDisplayUrl = computed(
+  () => videoPreviewUrl.value || getUploadedFileUrl(dishInfoForm.videoPath)
+);
 const stepImageDisplayUrl = computed(
   () =>
     stepImagePreviewUrl.value ||
@@ -264,6 +277,12 @@ function revokeCoverPreviewUrl() {
   if (!coverPreviewUrl.value) return;
   URL.revokeObjectURL(coverPreviewUrl.value);
   coverPreviewUrl.value = "";
+}
+
+function revokeVideoPreviewUrl() {
+  if (!videoPreviewUrl.value) return;
+  URL.revokeObjectURL(videoPreviewUrl.value);
+  videoPreviewUrl.value = "";
 }
 
 function revokeStepImagePreviewUrl() {
@@ -288,6 +307,25 @@ const onCoverChange: UploadProps["onChange"] = async (fileItem: UploadFile) => {
     ElMessage.error("图片上传失败，请稍后重试");
   } finally {
     coverUploading.value = false;
+  }
+};
+
+const onVideoChange: UploadProps["onChange"] = async (fileItem: UploadFile) => {
+  if (!fileItem.raw) return;
+  revokeVideoPreviewUrl();
+  videoPreviewUrl.value = URL.createObjectURL(fileItem.raw);
+  videoUploading.value = true;
+
+  try {
+    const result = await uploadFile(fileItem.raw);
+    dishInfoForm.videoPath = result.data;
+    ElMessage.success(result.message || "视频上传成功");
+  } catch (error) {
+    revokeVideoPreviewUrl();
+    dishInfoForm.videoPath = "";
+    ElMessage.error("视频上传失败，请稍后重试");
+  } finally {
+    videoUploading.value = false;
   }
 };
 
@@ -519,6 +557,7 @@ async function submitRecipe() {
     checkStatus: dishInfoForm.checkStatus,
     tips: dishInfoForm.tips,
     imgPath: dishInfoForm.imgPath,
+    videoPath: dishInfoForm.videoPath,
     flavors: seasonings.value.map(item => ({
       id: item.id,
       flavorName: item.flavorName,
@@ -541,7 +580,7 @@ async function submitRecipe() {
   submitting.value = true;
   try {
     await createRecipe(payload);
-    activeStep.value = 4;
+    activeStep.value = 5;
     ElMessage.success("菜谱创建成功");
   } finally {
     submitting.value = false;
@@ -554,12 +593,12 @@ async function goNext() {
     if (!valid) return;
   }
 
-  if (activeStep.value === 3) {
+  if (activeStep.value === 4) {
     await submitRecipe();
     return;
   }
 
-  if (activeStep.value < 4) {
+  if (activeStep.value < 5) {
     activeStep.value += 1;
     return;
   }
@@ -578,6 +617,7 @@ async function loadRecipeDetail() {
       dishInfoForm.checkStatus = result.data.checkStatus;
       dishInfoForm.tips = result.data.tips;
       dishInfoForm.imgPath = result.data.imgPath;
+      dishInfoForm.videoPath = result.data.videoPath || "";
       seasonings.value = result.data.flavorList;
       ingredients.value = result.data.materialList;
       recipeSteps.value = result.data.stepList;
@@ -592,6 +632,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   revokeCoverPreviewUrl();
+  revokeVideoPreviewUrl();
   revokeStepImagePreviewUrl();
 });
 </script>
@@ -825,6 +866,34 @@ onBeforeUnmount(() => {
         </div>
       </template>
 
+      <template v-else-if="activeStep === 4">
+        <div class="flex min-h-[420px] items-center justify-center">
+          <div class="w-full max-w-[620px]">
+            <video
+              v-if="videoDisplayUrl"
+              :src="videoDisplayUrl"
+              controls
+              class="mb-4 h-[260px] w-full rounded-lg bg-black object-contain"
+            />
+            <el-upload
+              class="w-full"
+              drag
+              accept="video/*"
+              :auto-upload="false"
+              :show-file-list="false"
+              :disabled="videoUploading"
+              :on-change="onVideoChange"
+            >
+              <div class="space-y-2">
+                <div class="text-sm text-text_color_regular">
+                  {{ videoUploading ? "视频上传中..." : "点击上传或修改菜谱视频" }}
+                </div>
+              </div>
+            </el-upload>
+          </div>
+        </div>
+      </template>
+
       <div
         v-else
         class="flex min-h-[420px] flex-col items-center justify-center gap-6"
@@ -845,7 +914,7 @@ onBeforeUnmount(() => {
         {{ activeStep === 0 ? "返回" : "上一步" }}
       </el-button>
       <el-button type="primary" :loading="submitting" @click="goNext">
-        {{ activeStep === 4 ? "完成" : activeStep === 3 ? "提交" : "下一步" }}
+        {{ activeStep === 5 ? "完成" : activeStep === 4 ? "提交" : "下一步" }}
       </el-button>
     </div>
 

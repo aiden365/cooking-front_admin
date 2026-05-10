@@ -66,9 +66,9 @@ onMounted(() => {
         <el-descriptions-item label="预计用时">
           {{ recipe.takeTimes }} 分钟
         </el-descriptions-item>
-        <el-descriptions-item label="浏览量">
+<!--        <el-descriptions-item label="浏览量">
           {{ recipe.viewCount }}
-        </el-descriptions-item>
+        </el-descriptions-item>-->
         <el-descriptions-item label="活跃值">
           {{ recipe.activeVal }}
         </el-descriptions-item>

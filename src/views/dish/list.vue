@@ -373,12 +373,7 @@ onMounted(() => {
         <el-table-column label="预计用时" min-width="100" align="center">
           <template #default="{ row }"> {{ row.takeTimes }} </template>
         </el-table-column>
-        <el-table-column
-          label="浏览量"
-          prop="viewCount"
-          min-width="70"
-          align="center"
-        />
+
         <el-table-column
           label="活跃值"
           prop="activeVal"

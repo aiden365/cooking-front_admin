@@ -7,6 +7,7 @@ export interface LabelListParams {
   labelName?: string;
   labelIds?: number[];
   type?: number;
+  excludeLabelIds?: number[];
 }
 
 export interface LabelItem {
